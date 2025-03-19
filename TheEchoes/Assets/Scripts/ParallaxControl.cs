@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class MenuParallax : MonoBehaviour
+public class ParallaxControl : MonoBehaviour
 {
     public float offsetMultiplier = 1f;
     public float smoothTime = .3f;
