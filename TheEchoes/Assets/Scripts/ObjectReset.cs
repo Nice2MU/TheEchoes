@@ -3,18 +3,37 @@
 public class ObjectReset : MonoBehaviour
 {
     private Vector3 initialPosition;
+    private Quaternion initialRotation;
+    private Rigidbody2D rb;
 
     void Start()
     {
-        // เก็บตำแหน่งเริ่มต้น
         initialPosition = transform.position;
-        Debug.Log(gameObject.name + " initial position: " + initialPosition);
+        initialRotation = transform.rotation;
+        rb = GetComponent<Rigidbody2D>();
     }
 
     public void ResetPosition()
     {
-        // รีเซ็ตตำแหน่ง
         transform.position = initialPosition;
-        Debug.Log(gameObject.name + " position reset to: " + initialPosition);  // ตรวจสอบว่าเรียกใช้งาน ResetPosition
+        transform.rotation = initialRotation;
+
+        if (rb != null)
+        {
+            rb.velocity = Vector2.zero;
+            rb.angularVelocity = 0f;
+            rb.gravityScale = 1f;
+            rb.bodyType = RigidbodyType2D.Kinematic;
+        }
+    }
+
+    public void ResetState()
+    {
+        if (!gameObject.activeSelf)
+        {
+            gameObject.SetActive(true);
+        }
+
+        ResetPosition();
     }
 }

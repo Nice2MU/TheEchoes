@@ -5,6 +5,11 @@ TagManager:
   serializedVersion: 3
   tags:
   - Water
+  - Ramble
+  - ObjectToDestroy
+  - Lumerin
+  - Vine
+  - SlideArea
   layers:
   - Default
   - TransparentFX
@@ -12,10 +17,10 @@ TagManager:
   - Ground
   - Water
   - UI
-  - 
-  - 
-  - 
-  - 
+  - Enemy
+  - MorphTarget
+  - Destructible
+  - Ceiling
   - 
   - 
   - 

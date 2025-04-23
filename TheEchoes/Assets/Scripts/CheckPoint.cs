@@ -6,8 +6,7 @@ public class Checkpoint : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
-            // เมื่อผู้เล่นชนกับ Checkpoint, จะบันทึกตำแหน่ง Checkpoint
-            PlayerControl.lastCheckpointPosition = transform.position;
+            PlayerDeathHandler.lastCheckpointPosition = transform.position;
         }
     }
 }
