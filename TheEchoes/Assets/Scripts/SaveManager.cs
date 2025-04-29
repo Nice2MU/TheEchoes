@@ -4,10 +4,10 @@ using System.Collections.Generic;
 using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine.SceneManagement;
 
-public class FullSceneStateManager : MonoBehaviour
+public class SaveManager : MonoBehaviour
 {
     private string savePath;
-    private List<SavableObject> savableObjects = new List<SavableObject>();
+    private List<SavaObject> SavaObject = new List<SavaObject>();
 
     private void Awake()
     {
@@ -22,8 +22,8 @@ public class FullSceneStateManager : MonoBehaviour
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        savableObjects.Clear();
-        savableObjects.AddRange(FindObjectsOfType<SavableObject>());
+        SavaObject.Clear();
+        SavaObject.AddRange(FindObjectsOfType<SavaObject>());
         LoadScene();
     }
 
@@ -43,7 +43,7 @@ public class FullSceneStateManager : MonoBehaviour
     public void SaveScene()
     {
         Dictionary<string, ObjectData> saveData = new Dictionary<string, ObjectData>();
-        foreach (var obj in savableObjects)
+        foreach (var obj in SavaObject)
         {
             saveData[obj.UniqueID] = obj.GetData();
         }
@@ -67,7 +67,7 @@ public class FullSceneStateManager : MonoBehaviour
             BinaryFormatter formatter = new BinaryFormatter();
             var saveData = formatter.Deserialize(stream) as Dictionary<string, ObjectData>;
 
-            foreach (var obj in savableObjects)
+            foreach (var obj in SavaObject)
             {
                 if (saveData.TryGetValue(obj.UniqueID, out var data))
                 {

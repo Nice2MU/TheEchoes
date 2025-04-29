@@ -154,7 +154,6 @@ public class ConsumeControl : MonoBehaviour
             pawerBar.maxValue = morphDuration;
             pawerBar.value = morphDuration;
         }
-
         morphTimerCoroutine = StartCoroutine(MorphCountdown());
         isConsuming = false;
     }
@@ -171,10 +170,8 @@ public class ConsumeControl : MonoBehaviour
             {
                 pawerBar.value = timeLeft;
             }
-
             yield return null;
         }
-
         RevertToOriginalForm();
     }
 
@@ -235,7 +232,6 @@ public class ConsumeControl : MonoBehaviour
                 }
             }
         }
-
         consumedObjects.Clear();
     }
 

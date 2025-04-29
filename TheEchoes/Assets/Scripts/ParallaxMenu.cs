@@ -2,8 +2,8 @@ using UnityEngine;
 
 public class ParallaxMenu : MonoBehaviour
 {
-    public float offsetMultiplier = 1f;
-    public float smoothTime = .3f;
+    public float offsetMultiplier = 10f;
+    public float smoothTime = 0.4f;
 
     private Vector2 startPosition;
     private Vector3 velocity;

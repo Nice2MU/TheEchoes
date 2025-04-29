@@ -40,7 +40,6 @@ public class DialogueManager : MonoBehaviour
         {
             lines.Enqueue(dialogueLine);
         }
-
         DisplayNextDialogueLine();
     }
 
@@ -51,7 +50,6 @@ public class DialogueManager : MonoBehaviour
             EndDialogue();
             return;
         }
-
         DialogueLine currentLine = lines.Dequeue();
 
         characterIcon.sprite = currentLine.character.icon;

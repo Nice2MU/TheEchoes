@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System;
 
-public class SavableObject : MonoBehaviour
+public class SavaObject : MonoBehaviour
 {
     [SerializeField]
     private string uniqueID = Guid.NewGuid().ToString();

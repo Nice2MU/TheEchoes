@@ -2,16 +2,16 @@
 using UnityEngine.SceneManagement;
 using System.Collections;
 
-public class LoadingScreenController : MonoBehaviour
+public class LoadingScreen : MonoBehaviour
 {
-    public Canvas loadingCanvas;
-    public float displayTime = 1.0f;
+    public GameObject loadingPanel;
+    public float displayTime = 0.7f;
 
     private void Awake()
     {
-        if (loadingCanvas != null)
+        if (loadingPanel != null)
         {
-            loadingCanvas.enabled = true;
+            loadingPanel.SetActive(true);
         }
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
@@ -30,9 +30,9 @@ public class LoadingScreenController : MonoBehaviour
     {
         yield return new WaitForSeconds(displayTime);
 
-        if (loadingCanvas != null)
+        if (loadingPanel != null)
         {
-            loadingCanvas.enabled = false;
+            loadingPanel.SetActive(false);
         }
     }
 }
