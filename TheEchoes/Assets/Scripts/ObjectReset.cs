@@ -33,7 +33,6 @@ public class ObjectReset : MonoBehaviour
         {
             gameObject.SetActive(true);
         }
-
         ResetPosition();
     }
 }

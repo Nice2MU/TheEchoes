@@ -98,7 +98,6 @@ public class RollingPlayer : MonoBehaviour
             animator.SetBool("isSliding", false);
             currentSpeed = 0f;
         }
-
         wasSliding = isSliding;
     }
 

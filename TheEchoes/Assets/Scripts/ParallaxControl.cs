@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ParallaxController : MonoBehaviour
+public class ParallaxControl : MonoBehaviour
 {
     Transform cam;
     Vector3 camStartPos;
@@ -22,6 +22,8 @@ public class ParallaxController : MonoBehaviour
     [Header("Pixel Art Settings")]
     public float pixelsPerUnit = 100f;
 
+    private Vector3[] velocity;
+
     void Start()
     {
         cam = Camera.main.transform;
@@ -31,6 +33,7 @@ public class ParallaxController : MonoBehaviour
         mat = new Material[backCount];
         backSpeed = new float[backCount];
         backgrounds = new GameObject[backCount];
+        velocity = new Vector3[backCount];
 
         if (customStartPositions == null || customStartPositions.Length != backCount)
         {
@@ -50,7 +53,6 @@ public class ParallaxController : MonoBehaviour
                 mat[i] = renderer.material;
             }
         }
-
         BackSpeedCalculate(backCount);
     }
 
@@ -76,16 +78,16 @@ public class ParallaxController : MonoBehaviour
     {
         Vector3 camOffset = cam.position - camStartPos;
 
-        camOffset.x = Mathf.Lerp(camOffset.x, cam.position.x - camStartPos.x, 0.05f);
-        camOffset.y = Mathf.Lerp(camOffset.y, cam.position.y - camStartPos.y, 0.05f);
+        camOffset.x = Mathf.Lerp(camOffset.x, cam.position.x - camStartPos.x, 0.1f * Time.deltaTime);
+        camOffset.y = Mathf.Lerp(camOffset.y, cam.position.y - camStartPos.y, 0.1f * Time.deltaTime);
 
         for (int i = 0; i < backgrounds.Length; i++)
         {
             float speed = backSpeed[i] * parallaxSpeed;
             Vector3 moveOffset = new Vector3(camOffset.x, 0, 0);
-            Vector3 newPos = customStartPositions[i] + moveOffset;
+            Vector3 targetPos = customStartPositions[i] + moveOffset;
 
-            backgrounds[i].transform.position = Vector3.Lerp(backgrounds[i].transform.position, newPos, 0.1f);
+            backgrounds[i].transform.position = Vector3.SmoothDamp(backgrounds[i].transform.position, targetPos, ref velocity[i], 0.2f, Mathf.Infinity, Time.deltaTime);
 
             if (mat[i] != null)
             {
