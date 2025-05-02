@@ -3,8 +3,8 @@ guid: 19ba8d442cc4344429cd02443fe56488
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 1825515198772772359
-    second: WhisperingForest2_0
+      213: 1159645710760993026
+    second: whispering-forest2_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -75,7 +75,7 @@ TextureImporter:
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 0
+    textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -113,7 +113,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: WhisperingForest2_0
+      name: whispering-forest2_0
       rect:
         serializedVersion: 2
         x: 0
@@ -128,8 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 70e7deab668855910800000000000000
-      internalID: 1825515198772772359
+      spriteID: 201e63f31a3e71010800000000000000
+      internalID: 1159645710760993026
       vertices: []
       indices: 
       edges: []
@@ -148,7 +148,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      WhisperingForest2_0: 1825515198772772359
+      whispering-forest2_0: 1159645710760993026
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

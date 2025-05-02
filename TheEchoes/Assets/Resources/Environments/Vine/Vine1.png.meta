@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 7316f83ecb3c07043a74d11e3e6747cd
+guid: a5d9ced69f0d35644beef0dbf693f2e7
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -2366325142106802760
-    second: whispering-forest4_0
+      213: -6251045262158637322
+    second: Vine1_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -40,9 +40,9 @@ TextureImporter:
     filterMode: 0
     aniso: 1
     mipBias: 0
-    wrapU: 0
-    wrapV: 0
-    wrapW: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
@@ -113,23 +113,23 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: whispering-forest4_0
+      name: Vine1_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 640
-        height: 360
+        width: 25
+        height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 8b5f5a112df192fd0800000000000000
-      internalID: -2366325142106802760
+      spriteID: 6f6552a1473df39a0800000000000000
+      internalID: -6251045262158637322
       vertices: []
       indices: 
       edges: []
@@ -138,7 +138,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 3cc699e3c8a06c641873db6d8caa015b
     internalID: 0
     vertices: []
     indices: 
@@ -148,7 +148,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      whispering-forest4_0: -2366325142106802760
+      Vine1_0: -6251045262158637322
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

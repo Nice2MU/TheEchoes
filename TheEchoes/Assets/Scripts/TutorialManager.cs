@@ -40,7 +40,6 @@ public class TutorialManager : MonoBehaviour
             }
         }
 
-        // ถ้าเป็นโซนที่ไม่รู้จัก ให้ซ่อนปุ่ม
         if (collision.CompareTag("HideZone"))
         {
             isInShowZone = false;
@@ -59,7 +58,7 @@ public class TutorialManager : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("Invalid gif index for current zone.");
+
         }
     }
 

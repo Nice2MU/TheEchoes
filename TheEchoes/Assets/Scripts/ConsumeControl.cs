@@ -7,14 +7,15 @@ public class ConsumeControl : MonoBehaviour
 {
     public Animator animator;
     public SpriteRenderer playerSprite;
+
     public float consumeRange = 1.0f;
-    public LayerMask targetLayer;
     public float morphDuration = 60f;
 
-    public Slider pawerBar;
-    public Transform groundCheck;
-    public LayerMask groundLayer;
+    public LayerMask targetLayer;
     public LayerMask waterLayer;
+
+    public Slider pawerBar;
+
 
     [System.Serializable]
     public class MorphData
@@ -203,14 +204,6 @@ public class ConsumeControl : MonoBehaviour
             Destroy(currentAbilityInstance);
             currentAbilityInstance = null;
         }
-    }
-
-    bool IsGrounded()
-    {
-        Vector2 boxSize = new Vector2(0.5f, 0.1f);
-        Vector2 boxOrigin = groundCheck.position;
-        RaycastHit2D hit = Physics2D.BoxCast(boxOrigin, boxSize, 0f, Vector2.down, 0.05f, groundLayer);
-        return hit.collider != null;
     }
 
     bool IsInWater()
