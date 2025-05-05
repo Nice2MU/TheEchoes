@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
 using UnityEngine;
@@ -16,9 +16,13 @@ public class DialogueManager : MonoBehaviour
 
     public bool isDialogueActive = false;
 
-    public float typingSpeed = 0.2f;
+    public float typingSpeed = 0.08f;
 
     public Animator animator;
+
+    private PlayerControl playerController;
+
+    public Button skipButton;
 
     private void Awake()
     {
@@ -26,12 +30,22 @@ public class DialogueManager : MonoBehaviour
             Instance = this;
 
         lines = new Queue<DialogueLine>();
+
+        GameObject player = GameObject.FindWithTag("Player");
+        if (player != null)
+        {
+            playerController = player.GetComponent<PlayerControl>();
+        }
+
+        if (skipButton != null)
+        {
+            skipButton.onClick.AddListener(SkipDialogue);
+        }
     }
 
     public void StartDialogue(Dialogue dialogue)
     {
         isDialogueActive = true;
-
         animator.Play("show");
 
         lines.Clear();
@@ -39,6 +53,11 @@ public class DialogueManager : MonoBehaviour
         foreach (DialogueLine dialogueLine in dialogue.dialogueLines)
         {
             lines.Enqueue(dialogueLine);
+        }
+
+        if (playerController != null)
+        {
+            playerController.canMove = false;
         }
         DisplayNextDialogueLine();
     }
@@ -50,13 +69,13 @@ public class DialogueManager : MonoBehaviour
             EndDialogue();
             return;
         }
+
         DialogueLine currentLine = lines.Dequeue();
 
         characterIcon.sprite = currentLine.character.icon;
         characterName.text = currentLine.character.name;
 
         StopAllCoroutines();
-
         StartCoroutine(TypeSentence(currentLine));
     }
 
@@ -74,5 +93,27 @@ public class DialogueManager : MonoBehaviour
     {
         isDialogueActive = false;
         animator.Play("hide");
+
+        if (playerController != null)
+        {
+            playerController.canMove = true;
+        }
+    }
+
+    public void SkipDialogue()
+    {
+        StopAllCoroutines();
+        dialogueArea.text = "";
+        lines.Clear();
+
+        EndDialogue();
+    }
+
+    private void Update()
+    {
+        if (isDialogueActive && Input.GetKeyDown(KeyCode.F))
+        {
+            SkipDialogue();
+        }
     }
 }

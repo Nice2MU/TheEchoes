@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class PreviousScene : MonoBehaviour
+public class SaveScene : MonoBehaviour
 {
     int sceneIndex;
     int sceneToOpen;

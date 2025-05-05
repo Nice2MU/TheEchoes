@@ -22,6 +22,8 @@ public class PlayerControl : MonoBehaviour
     private bool isSticking;
     private float jumpCharge;
 
+    public bool canMove = true;
+
     void Start()
     {
         animator = GetComponent<Animator>();
@@ -35,6 +37,8 @@ public class PlayerControl : MonoBehaviour
 
     void Update()
     {
+        if (!canMove) return;
+
         float moveX = Input.GetAxis("Horizontal");
 
         isGrounded = Physics2D.OverlapCircle(groundCheck.position, 0.1f, groundLayer);

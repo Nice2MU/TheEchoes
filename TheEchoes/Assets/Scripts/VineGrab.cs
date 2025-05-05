@@ -1,9 +1,9 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
 
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(DistanceJoint2D))]
-public class PlayerVineGrab : MonoBehaviour
+public class VineGrab : MonoBehaviour
 {
     private Rigidbody2D rb;
     private DistanceJoint2D joint;

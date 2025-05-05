@@ -1,10 +1,19 @@
 fileFormatVersion: 2
-guid: 88505159b872d1d40aa0839fd00eec54
+guid: 46a19990301a1a342a2ced2bfd341353
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 2468853854191441160
-    second: BigTree1_0
+      213: 1152671962550677562
+    second: Thorn1_0
+  - first:
+      213: -8034874007859375248
+    second: Thorn1_1
+  - first:
+      213: 8880113794407685849
+    second: Thorn1_2
+  - first:
+      213: -4317904933512650617
+    second: Thorn1_3
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -113,23 +122,89 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: BigTree1_0
+      name: Thorn1_0
       rect:
         serializedVersion: 2
         x: 0
-        y: 0
-        width: 380
-        height: 380
+        y: 83
+        width: 145
+        height: 61
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 8055f65ff71234220800000000000000
-      internalID: 2468853854191441160
+      spriteID: a30b266fa0d1fff00800000000000000
+      internalID: 1152671962550677562
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Thorn1_1
+      rect:
+        serializedVersion: 2
+        x: 159
+        y: 35
+        width: 242
+        height: 109
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 073d58219a46e7090800000000000000
+      internalID: -8034874007859375248
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Thorn1_2
+      rect:
+        serializedVersion: 2
+        x: 415
+        y: 52
+        width: 146
+        height: 92
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9de57b872708c3b70800000000000000
+      internalID: 8880113794407685849
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Thorn1_3
+      rect:
+        serializedVersion: 2
+        x: 575
+        y: 6
+        width: 241
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 78062181758b314c0800000000000000
+      internalID: -4317904933512650617
       vertices: []
       indices: 
       edges: []
@@ -138,7 +213,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 57393336941627c46b925cc778951f88
+    spriteID: 
     internalID: 0
     vertices: []
     indices: 
@@ -148,7 +223,10 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      BigTree1_0: 2468853854191441160
+      Thorn1_0: 1152671962550677562
+      Thorn1_1: -8034874007859375248
+      Thorn1_2: 8880113794407685849
+      Thorn1_3: -4317904933512650617
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

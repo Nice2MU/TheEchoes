@@ -1,3 +1,4 @@
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -25,15 +26,24 @@ public class Dialogue
 public class DialogueTrigger : MonoBehaviour
 {
     public Dialogue dialogue;
+    public bool isOneTimeDialogue = true;
+    private bool hasTriggered = false;
 
     public void TriggerDialogue()
     {
+        if (isOneTimeDialogue && hasTriggered)
+        {
+            return;
+        }
+
         DialogueManager.Instance.StartDialogue(dialogue);
+
+        hasTriggered = true;
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.tag == "Player")
+        if (collision.CompareTag("Player"))
         {
             TriggerDialogue();
         }

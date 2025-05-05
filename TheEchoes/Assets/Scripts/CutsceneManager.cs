@@ -9,6 +9,7 @@ public class CutsceneManager : MonoBehaviour
     public Button[] pauseButtons;
     public float[] sceneTimes;
     public bool triggerOnce = true;
+    public bool allowSkip = true;
 
     public Sprite pauseSprite;
     public Sprite playSprite;
@@ -27,6 +28,7 @@ public class CutsceneManager : MonoBehaviour
         foreach (var skipButton in skipButtons)
         {
             skipButton.onClick.AddListener(SkipAllScenes);
+            skipButton.gameObject.SetActive(allowSkip);
         }
 
         foreach (var pauseButton in pauseButtons)
@@ -37,7 +39,7 @@ public class CutsceneManager : MonoBehaviour
 
     private void Update()
     {
-        if (isCutscenePlaying && Input.GetKeyDown(KeyCode.E) && !isSkipping)
+        if (isCutscenePlaying && Input.GetKeyDown(KeyCode.F) && !isSkipping && allowSkip)
         {
             GoToNextScene();
         }
@@ -135,7 +137,7 @@ public class CutsceneManager : MonoBehaviour
 
     private void SkipAllScenes()
     {
-        if (!isSkipping)
+        if (!isSkipping && allowSkip)
         {
             isSkipping = true;
             StopAllCoroutines();
