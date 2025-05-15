@@ -7,20 +7,22 @@ public class ConsumeControl : MonoBehaviour
 {
     public Animator animator;
     public SpriteRenderer playerSprite;
-
-    public float consumeRange = 1.0f;
+    public Sprite defaultMorphIcon;
+    public Image morphIcon;
+    public Slider pawerBar;
+    
+    public float consumeRange = 1f;
     public float morphDuration = 60f;
+    public float consumeDelay = 1f;
 
     public LayerMask targetLayer;
     public LayerMask waterLayer;
-
-    public Slider pawerBar;
-
 
     [System.Serializable]
     public class MorphData
     {
         public string tag;
+        public Sprite icon;
         public RuntimeAnimatorController animatorController;
         public GameObject abilityPrefab;
     }
@@ -42,9 +44,16 @@ public class ConsumeControl : MonoBehaviour
 
     private List<GameObject> consumedObjects = new List<GameObject>();
 
+    private PlayerControl playerControl;
+
+    private MorphData lastMorphData;
+    private float lastMorphTimeLeft;
+    private bool hasStoredMorph = false;
+
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+        playerControl = GetComponent<PlayerControl>();
         originalController = animator.runtimeAnimatorController;
 
         if (pawerBar != null)
@@ -52,32 +61,49 @@ public class ConsumeControl : MonoBehaviour
             pawerBar.maxValue = morphDuration;
             pawerBar.value = 0f;
         }
+
+        LoadMorphData();
+        UpdateMorphIcon();
     }
 
     void Update()
     {
-        HandleDirection();
-
+        Direction();
         isInWater = IsInWater();
 
         if (Input.GetKeyDown(KeyCode.F))
         {
-            if (isMorphing && !isInWater)
+            if (isMorphing && hasStoredMorph && !isInWater)
             {
                 RevertToOriginalForm();
             }
-            else if (isMorphing && isInWater)
-            {
 
-            }
-            else if (!isConsuming)
+            else if (isMorphing && !isInWater)
             {
-                TryConsumeTarget();
+                RevertToOriginalForm();
+            }
+
+            else if (!isMorphing && !isConsuming && !isInWater)
+            {
+                if (IsTargetInFront())
+                {
+                    TryConsumeTarget();
+                }
+
+                else if (hasStoredMorph && !isMorphing)
+                {
+                    MorphBackToLastForm();
+                }
             }
         }
     }
 
-    void HandleDirection()
+    public void SetHasStoredMorph(bool value)
+    {
+        hasStoredMorph = value;
+    }
+
+    void Direction()
     {
         float moveInput = Input.GetAxisRaw("Horizontal");
 
@@ -91,6 +117,14 @@ public class ConsumeControl : MonoBehaviour
                 playerSprite.flipX = !isFacingRight;
             }
         }
+    }
+
+    bool IsTargetInFront()
+    {
+        Vector2 facingDir = isFacingRight ? Vector2.right : Vector2.left;
+        Vector2 frontPos = (Vector2)transform.position + facingDir * consumeRange * 0.75f;
+        Collider2D target = Physics2D.OverlapCircle(frontPos, consumeRange * 0.5f, targetLayer);
+        return target != null;
     }
 
     void TryConsumeTarget()
@@ -113,11 +147,13 @@ public class ConsumeControl : MonoBehaviour
                 if (data.abilityPrefab != null)
                 {
                     currentAbilityInstance = Instantiate(data.abilityPrefab);
-                    foreach (IMorphAbility ability in currentAbilityInstance.GetComponents<IMorphAbility>())
+                    foreach (AbilityManager ability in currentAbilityInstance.GetComponents<AbilityManager>())
                     {
-                        ability.OnMorphEnter(gameObject);
+                        ability.OnAbilityEnter(gameObject);
                     }
                 }
+
+                SoundManager.instance?.PlaySFX("Consume");
 
                 isMorphing = true;
                 isConsuming = true;
@@ -126,9 +162,15 @@ public class ConsumeControl : MonoBehaviour
                 target.gameObject.SetActive(false);
                 consumedObjects.Add(target.gameObject);
 
-                Invoke("MorphIntoTarget", 0.5f);
+                StartCoroutine(DelayBeforeMorph());
             }
         }
+    }
+
+    IEnumerator DelayBeforeMorph()
+    {
+        yield return new WaitForSeconds(consumeDelay);
+        MorphIntoTarget();
     }
 
     MorphData GetMorphData(string tag)
@@ -141,8 +183,20 @@ public class ConsumeControl : MonoBehaviour
         return null;
     }
 
+    MorphData GetMorphDataByController(RuntimeAnimatorController controller)
+    {
+        foreach (var data in morphMappings)
+        {
+            if (data.animatorController == controller)
+                return data;
+        }
+        return null;
+    }
+
     void MorphIntoTarget()
     {
+        SoundManager.instance?.PlaySFX("Transform");
+
         if (animator != null && currentMorphController != null)
         {
             animator.runtimeAnimatorController = currentMorphController;
@@ -155,14 +209,29 @@ public class ConsumeControl : MonoBehaviour
             pawerBar.maxValue = morphDuration;
             pawerBar.value = morphDuration;
         }
-        morphTimerCoroutine = StartCoroutine(MorphCountdown());
+
+        morphTimerCoroutine = StartCoroutine(MorphCountdown(morphDuration));
         isConsuming = false;
+
+        SaveMorphData(currentMorphController, morphDuration);
+
+        if (morphIcon != null && lastMorphData != null)
+        {
+            morphIcon.sprite = lastMorphData.icon;
+        }
+
+        if (morphIcon != null && currentMorphController != null)
+        {
+            MorphData newMorphData = GetMorphDataByController(currentMorphController);
+            if (newMorphData != null)
+            {
+                morphIcon.sprite = newMorphData.icon;
+            }
+        }
     }
 
-    IEnumerator MorphCountdown()
+    IEnumerator MorphCountdown(float timeLeft)
     {
-        float timeLeft = morphDuration;
-
         while (timeLeft > 0f)
         {
             timeLeft -= Time.deltaTime;
@@ -171,17 +240,38 @@ public class ConsumeControl : MonoBehaviour
             {
                 pawerBar.value = timeLeft;
             }
+
             yield return null;
         }
+
         RevertToOriginalForm();
     }
 
     public void RevertToOriginalForm()
     {
+        if (isMorphing)
+        {
+            if (pawerBar != null && pawerBar.value > 0)
+            {
+                lastMorphData = GetMorphDataByController(animator.runtimeAnimatorController);
+                lastMorphTimeLeft = pawerBar.value;
+                hasStoredMorph = true;
+            }
+            else
+            {
+                lastMorphData = null;
+                lastMorphTimeLeft = 0f;
+                hasStoredMorph = false;
+            }
+        }
+
+        isMorphing = false;
+
+        SoundManager.instance?.PlaySFX("Transform");
+
         animator.runtimeAnimatorController = originalController;
         animator.Rebind();
         animator.Update(0f);
-        isMorphing = false;
 
         if (pawerBar != null)
         {
@@ -196,14 +286,89 @@ public class ConsumeControl : MonoBehaviour
 
         if (currentAbilityInstance != null)
         {
-            foreach (IMorphAbility ability in currentAbilityInstance.GetComponents<IMorphAbility>())
+            foreach (AbilityManager ability in currentAbilityInstance.GetComponents<AbilityManager>())
             {
-                ability.OnMorphExit(gameObject);
+                ability.OnAbilityExit(gameObject);
+            }
+
+            if (currentAbilityInstance.GetComponent<LumerinAbility>() != null)
+            {
+                StartCoroutine(DisablePlayerControlForSeconds(1.5f));
             }
 
             Destroy(currentAbilityInstance);
             currentAbilityInstance = null;
         }
+
+        UpdateMorphIcon();
+        ClearSavedMorphData();
+    }
+
+    private void UpdateMorphIcon()
+    {
+        if (morphIcon == null) return;
+
+        if (isMorphing && lastMorphData != null)
+        {
+            morphIcon.sprite = lastMorphData.icon;
+        }
+
+        else if (hasStoredMorph && lastMorphData != null)
+        {
+            morphIcon.sprite = lastMorphData.icon;
+        }
+
+        else
+        {
+            morphIcon.sprite = defaultMorphIcon;
+        }
+    }
+
+    void MorphBackToLastForm()
+    {
+        if (lastMorphData == null || lastMorphData.animatorController == null)
+            return;
+
+        SoundManager.instance?.PlaySFX("Transform");
+
+        animator.runtimeAnimatorController = lastMorphData.animatorController;
+        animator.Rebind();
+        animator.Update(0f);
+
+        if (lastMorphData.abilityPrefab != null)
+        {
+            currentAbilityInstance = Instantiate(lastMorphData.abilityPrefab);
+            foreach (AbilityManager ability in currentAbilityInstance.GetComponents<AbilityManager>())
+            {
+                ability.OnAbilityEnter(gameObject);
+            }
+        }
+
+        if (pawerBar != null)
+        {
+            pawerBar.maxValue = morphDuration;
+            pawerBar.value = lastMorphTimeLeft;
+        }
+
+        morphTimerCoroutine = StartCoroutine(MorphCountdown(lastMorphTimeLeft));
+        isMorphing = true;
+        hasStoredMorph = false;
+
+        if (morphIcon != null && lastMorphData != null)
+        {
+            morphIcon.sprite = lastMorphData.icon;
+        }
+    }
+
+    IEnumerator DisablePlayerControlForSeconds(float duration)
+    {
+        if (playerControl != null)
+            playerControl.enabled = false;
+
+        yield return new WaitForSeconds(duration);
+
+        if (playerControl != null)
+            playerControl.enabled = true;
     }
 
     bool IsInWater()
@@ -225,6 +390,7 @@ public class ConsumeControl : MonoBehaviour
                 }
             }
         }
+
         consumedObjects.Clear();
     }
 
@@ -237,5 +403,36 @@ public class ConsumeControl : MonoBehaviour
 
         Gizmos.color = Color.blue;
         Gizmos.DrawWireSphere(transform.position, 0.2f);
+    }
+
+    private void SaveMorphData(RuntimeAnimatorController controller, float timeLeft)
+    {
+        if (controller != null)
+        {
+            PlayerPrefs.SetString("LastMorphTag", controller.name);
+            PlayerPrefs.SetFloat("LastMorphTimeLeft", timeLeft);
+            PlayerPrefs.Save();
+        }
+    }
+
+    private void LoadMorphData()
+    {
+        string lastMorphTag = PlayerPrefs.GetString("LastMorphTag", "");
+        if (!string.IsNullOrEmpty(lastMorphTag))
+        {
+            MorphData data = morphMappings.Find(m => m.animatorController.name == lastMorphTag);
+            if (data != null)
+            {
+                lastMorphData = data;
+                lastMorphTimeLeft = PlayerPrefs.GetFloat("LastMorphTimeLeft", morphDuration);
+            }
+        }
+    }
+
+    private void ClearSavedMorphData()
+    {
+        PlayerPrefs.DeleteKey("LastMorphTag");
+        PlayerPrefs.DeleteKey("LastMorphTimeLeft");
+        PlayerPrefs.Save();
     }
 }

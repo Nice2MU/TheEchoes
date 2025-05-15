@@ -38,6 +38,7 @@ public class FallingPlatform : MonoBehaviour
     {
         falling = false;
         StopAllCoroutines();
+
         if (rb != null)
         {
             rb.bodyType = RigidbodyType2D.Kinematic;

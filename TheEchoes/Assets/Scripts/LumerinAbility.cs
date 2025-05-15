@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public class LumerinAbility : MonoBehaviour, IMorphAbility
+public class LumerinAbility : MonoBehaviour, AbilityManager
 {
     [Header("Movement")]
     public float moveSpeed = 2f;
@@ -40,7 +40,11 @@ public class LumerinAbility : MonoBehaviour, IMorphAbility
 
     private PlayerControl originalControl;
 
-    public void OnMorphEnter(GameObject playerObj)
+    private bool isPlayingOnGroundSound = false;
+    private bool isPlayingSwimSound = false;
+    private bool wasInWater = false;
+
+    public void OnAbilityEnter(GameObject playerObj)
     {
         player = playerObj;
         rb = player.GetComponent<Rigidbody2D>();
@@ -48,6 +52,7 @@ public class LumerinAbility : MonoBehaviour, IMorphAbility
         animator = player.GetComponent<Animator>();
 
         originalControl = player.GetComponent<PlayerControl>();
+
         if (originalControl != null)
         {
             originalControl.enabled = false;
@@ -57,6 +62,7 @@ public class LumerinAbility : MonoBehaviour, IMorphAbility
             groundCheck = player.transform.Find("GroundCheck");
 
         currentBoost = maxBoost;
+
         if (boostBar != null)
         {
             boostBar.gameObject.SetActive(true);
@@ -65,7 +71,7 @@ public class LumerinAbility : MonoBehaviour, IMorphAbility
         }
     }
 
-    public void OnMorphExit(GameObject playerObj)
+    public void OnAbilityExit(GameObject playerObj)
     {
         PlayRevertAnimation(playerObj);
 
@@ -78,14 +84,23 @@ public class LumerinAbility : MonoBehaviour, IMorphAbility
         {
             boostBar.gameObject.SetActive(false);
         }
+
+        if (isPlayingSwimSound || isPlayingOnGroundSound)
+        {
+            SoundManager.instance.effectSource.Stop();
+            isPlayingSwimSound = false;
+            isPlayingOnGroundSound = false;
+        }
     }
 
     public void PlayRevertAnimation(GameObject playerObj)
     {
         Animator revertAnimator = playerObj.GetComponent<Animator>();
+
         if (revertAnimator != null)
         {
             revertAnimator.SetTrigger("shake-slime");
+            SoundManager.instance.PlaySFX("Shake");
         }
     }
 
@@ -93,16 +108,16 @@ public class LumerinAbility : MonoBehaviour, IMorphAbility
     {
         if (player == null || rb == null) return;
 
-        HandleGroundCheck();
-        HandleWaterCheck();
-        HandleSwimBoost();
-        HandleMovement();
-        HandleDiveRise();
-        HandleAutoJump();
-        HandleBoostRecovery();
+        GroundCheck();
+        WaterCheck();
+        SwimBoost();
+        Movement();
+        DiveRise();
+        AutoJump();
+        BoostRecovery();
     }
 
-    void HandleGroundCheck()
+    void GroundCheck()
     {
         if (groundCheck != null)
         {
@@ -117,7 +132,7 @@ public class LumerinAbility : MonoBehaviour, IMorphAbility
         }
     }
 
-    void HandleWaterCheck()
+    void WaterCheck()
     {
         if (!isGrounded)
         {
@@ -125,11 +140,22 @@ public class LumerinAbility : MonoBehaviour, IMorphAbility
             {
                 isInWater = Physics2D.OverlapCircle(groundCheck.position, 0.1f, waterLayer);
                 animator.SetBool("swim", isInWater);
+
+                if (isInWater && !wasInWater)
+                {
+                    SoundManager.instance.PlaySFX("Drown");
+                    wasInWater = true;
+                }
+
+                else if (!isInWater)
+                {
+                    wasInWater = false;
+                }
             }
         }
     }
 
-    void HandleSwimBoost()
+    void SwimBoost()
     {
         if (isInWater)
         {
@@ -139,15 +165,46 @@ public class LumerinAbility : MonoBehaviour, IMorphAbility
                 currentBoost -= boostConsumptionRate * Time.deltaTime;
                 currentBoost = Mathf.Clamp(currentBoost, 0f, maxBoost);
                 animator.SetBool("swimboost", true);
+
+                if (!SoundManager.instance.effectSource.isPlaying || SoundManager.instance.effectSource.clip != SoundManager.instance.boostlumerin)
+                {
+                    SoundManager.instance.effectSource.loop = true;
+                    SoundManager.instance.effectSource.clip = SoundManager.instance.boostlumerin;
+                    SoundManager.instance.effectSource.Play();
+                }
             }
+
             else
             {
+                if (isBoosting)
+                {
+                    if (SoundManager.instance.effectSource.isPlaying && SoundManager.instance.effectSource.clip == SoundManager.instance.boostlumerin)
+                    {
+                        SoundManager.instance.effectSource.Stop();
+                    }
+                }
+
                 isBoosting = false;
                 animator.SetBool("swimboost", false);
+
+                if (Mathf.Abs(rb.velocity.x) > 0 && (!SoundManager.instance.effectSource.isPlaying || SoundManager.instance.effectSource.clip != SoundManager.instance.swimlumerin))
+                {
+                    SoundManager.instance.effectSource.loop = true;
+                    SoundManager.instance.effectSource.clip = SoundManager.instance.swimlumerin;
+                    SoundManager.instance.effectSource.Play();
+                }
             }
         }
+
         else
         {
+            if (SoundManager.instance.effectSource.isPlaying &&
+                (SoundManager.instance.effectSource.clip == SoundManager.instance.boostlumerin ||
+                 SoundManager.instance.effectSource.clip == SoundManager.instance.swimlumerin))
+            {
+                SoundManager.instance.effectSource.Stop();
+            }
+
             isBoosting = false;
             animator.SetBool("swimboost", false);
         }
@@ -158,34 +215,41 @@ public class LumerinAbility : MonoBehaviour, IMorphAbility
         }
     }
 
-    void HandleMovement()
+    void Movement()
     {
+        float moveInput = Input.GetAxisRaw("Horizontal");
+
         if (isInWater)
         {
-            if (!isBoosting)
-            {
-                float moveInput = Input.GetAxisRaw("Horizontal");
-                float speed = moveSpeed;
-                rb.velocity = new Vector2(moveInput * speed, rb.velocity.y);
-                animator.SetBool("swim", moveInput != 0);
+            float speed = isBoosting ? moveSpeed * boostSpeedMultiplier : moveSpeed;
+            float direction = isBoosting ? (spriteRenderer.flipX ? -1f : 1f) : moveInput;
 
-                if (moveInput != 0)
-                {
-                    spriteRenderer.flipX = moveInput < 0;
-                }
-            }
-            else
+            rb.velocity = new Vector2(direction * speed, rb.velocity.y);
+            animator.SetBool("swim", moveInput != 0);
+
+            if (direction != 0)
             {
-                float moveInput = spriteRenderer.flipX ? -1f : 1f;
-                float speed = moveSpeed * boostSpeedMultiplier;
-                rb.velocity = new Vector2(moveInput * speed, rb.velocity.y);
+                spriteRenderer.flipX = direction < 0;
+            }
+
+            if ((moveInput != 0 || isRising || !isGrounded) && !isPlayingSwimSound)
+            {
+                SoundManager.instance.effectSource.loop = true;
+                SoundManager.instance.effectSource.clip = SoundManager.instance.swimlumerin;
+                SoundManager.instance.effectSource.Play();
+                isPlayingSwimSound = true;
+            }
+
+            else if (moveInput == 0 && !isRising && isGrounded && isPlayingSwimSound)
+            {
+                SoundManager.instance.effectSource.Stop();
+                isPlayingSwimSound = false;
             }
         }
+
         else
         {
-            float moveInput = Input.GetAxisRaw("Horizontal");
-            float speed = groundMoveSpeed;
-            rb.velocity = new Vector2(moveInput * speed, rb.velocity.y);
+            rb.velocity = new Vector2(moveInput * groundMoveSpeed, rb.velocity.y);
 
             if (moveInput != 0)
             {
@@ -193,14 +257,27 @@ public class LumerinAbility : MonoBehaviour, IMorphAbility
             }
 
             animator.SetFloat("Speed", Mathf.Abs(moveInput));
-
             animator.SetBool("swim", false);
             animator.SetBool("swimboost", false);
             animator.SetBool("onground", true);
+
+            if (isAutoJumping && !isPlayingOnGroundSound)
+            {
+                SoundManager.instance.effectSource.loop = true;
+                SoundManager.instance.effectSource.clip = SoundManager.instance.ongroundlumerin;
+                SoundManager.instance.effectSource.Play();
+                isPlayingOnGroundSound = true;
+            }
+
+            else if (!isAutoJumping && isPlayingOnGroundSound)
+            {
+                SoundManager.instance.effectSource.Stop();
+                isPlayingOnGroundSound = false;
+            }
         }
     }
 
-    void HandleDiveRise()
+    void DiveRise()
     {
         if (isInWater)
         {
@@ -209,6 +286,7 @@ public class LumerinAbility : MonoBehaviour, IMorphAbility
                 isRising = true;
                 rb.velocity = new Vector2(rb.velocity.x, riseSpeed);
             }
+
             else
             {
                 isRising = false;
@@ -216,23 +294,38 @@ public class LumerinAbility : MonoBehaviour, IMorphAbility
             }
 
             animator.SetBool("isRising", isRising);
+
+            if (!isPlayingSwimSound)
+            {
+                SoundManager.instance.effectSource.loop = true;
+                SoundManager.instance.effectSource.clip = SoundManager.instance.swimlumerin;
+                SoundManager.instance.effectSource.Play();
+                isPlayingSwimSound = true;
+            }
         }
+
         else
         {
             isRising = false;
             animator.SetBool("isRising", false);
-        }
-    }
 
-    void HandleAutoJump()
-    {
-        if (isGrounded && !isInWater && !isAutoJumping)
-        {
-            AutoJump();
+            if (isPlayingSwimSound)
+            {
+                SoundManager.instance.effectSource.Stop();
+                isPlayingSwimSound = false;
+            }
         }
     }
 
     void AutoJump()
+    {
+        if (isGrounded && !isInWater && !isAutoJumping)
+        {
+            AutoJumps();
+        }
+    }
+
+    void AutoJumps()
     {
         isAutoJumping = true;
         rb.velocity = new Vector2(rb.velocity.x, autoJumpForce);
@@ -247,7 +340,7 @@ public class LumerinAbility : MonoBehaviour, IMorphAbility
         isAutoJumping = false;
     }
 
-    void HandleBoostRecovery()
+    void BoostRecovery()
     {
         if (!isBoosting && currentBoost < maxBoost)
         {

@@ -7,7 +7,7 @@ using UnityEngine.SceneManagement;
 public class SaveManager : MonoBehaviour
 {
     private string savePath;
-    private List<SavaObject> SavaObject = new List<SavaObject>();
+    private List<ObjectSave> ObjectSave = new List<ObjectSave>();
 
     private void Awake()
     {
@@ -22,8 +22,8 @@ public class SaveManager : MonoBehaviour
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        SavaObject.Clear();
-        SavaObject.AddRange(FindObjectsOfType<SavaObject>());
+        ObjectSave.Clear();
+        ObjectSave.AddRange(FindObjectsOfType<ObjectSave>());
         LoadScene();
     }
 
@@ -43,7 +43,8 @@ public class SaveManager : MonoBehaviour
     public void SaveScene()
     {
         Dictionary<string, ObjectData> saveData = new Dictionary<string, ObjectData>();
-        foreach (var obj in SavaObject)
+
+        foreach (var obj in ObjectSave)
         {
             saveData[obj.UniqueID] = obj.GetData();
         }
@@ -67,7 +68,7 @@ public class SaveManager : MonoBehaviour
             BinaryFormatter formatter = new BinaryFormatter();
             var saveData = formatter.Deserialize(stream) as Dictionary<string, ObjectData>;
 
-            foreach (var obj in SavaObject)
+            foreach (var obj in ObjectSave)
             {
                 if (saveData.TryGetValue(obj.UniqueID, out var data))
                 {
@@ -83,6 +84,7 @@ public class SaveManager : MonoBehaviour
         {
             File.Delete(savePath);
         }
+
         else
         {
 

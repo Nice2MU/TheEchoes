@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class ParallaxBackground : MonoBehaviour
 {
@@ -38,6 +36,7 @@ public class ParallaxBackground : MonoBehaviour
         if (customStartPositions == null || customStartPositions.Length != backCount)
         {
             customStartPositions = new Vector3[backCount];
+
             for (int i = 0; i < backCount; i++)
             {
                 customStartPositions[i] = transform.GetChild(i).position;
@@ -48,11 +47,13 @@ public class ParallaxBackground : MonoBehaviour
         {
             backgrounds[i] = transform.GetChild(i).gameObject;
             Renderer renderer = backgrounds[i].GetComponent<Renderer>();
+
             if (renderer != null)
             {
                 mat[i] = renderer.material;
             }
         }
+
         BackSpeedCalculate(backCount);
     }
 
@@ -61,6 +62,7 @@ public class ParallaxBackground : MonoBehaviour
         for (int i = 0; i < backCount; i++)
         {
             float backDist = backgrounds[i].transform.position.z - cam.position.z;
+
             if (backDist > farthestBack)
             {
                 farthestBack = backDist;

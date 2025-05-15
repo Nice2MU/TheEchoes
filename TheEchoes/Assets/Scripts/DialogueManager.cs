@@ -16,7 +16,7 @@ public class DialogueManager : MonoBehaviour
 
     public bool isDialogueActive = false;
 
-    public float typingSpeed = 0.08f;
+    public float typingSpeed = 0.07f;
 
     public Animator animator;
 
@@ -59,6 +59,7 @@ public class DialogueManager : MonoBehaviour
         {
             playerController.canMove = false;
         }
+
         DisplayNextDialogueLine();
     }
 
@@ -66,6 +67,7 @@ public class DialogueManager : MonoBehaviour
     {
         if (lines.Count == 0)
         {
+            StopTypingSound();
             EndDialogue();
             return;
         }
@@ -82,15 +84,38 @@ public class DialogueManager : MonoBehaviour
     IEnumerator TypeSentence(DialogueLine dialogueLine)
     {
         dialogueArea.text = "";
+
+        if (SoundManager.instance != null)
+        {
+            SoundManager.instance.effectSource.loop = true;
+            SoundManager.instance.effectSource.clip = SoundManager.instance.typing;
+            SoundManager.instance.effectSource.Play();
+        }
+
         foreach (char letter in dialogueLine.line.ToCharArray())
         {
             dialogueArea.text += letter;
             yield return new WaitForSeconds(typingSpeed);
         }
+
+        StopTypingSound();
+    }
+
+    private void StopTypingSound()
+    {
+        if (SoundManager.instance != null &&
+            SoundManager.instance.effectSource.clip == SoundManager.instance.typing)
+        {
+            SoundManager.instance.effectSource.Stop();
+            SoundManager.instance.effectSource.loop = false;
+            SoundManager.instance.effectSource.clip = null;
+        }
     }
 
     void EndDialogue()
     {
+        StopTypingSound();
+
         isDialogueActive = false;
         animator.Play("hide");
 
@@ -103,6 +128,7 @@ public class DialogueManager : MonoBehaviour
     public void SkipDialogue()
     {
         StopAllCoroutines();
+        StopTypingSound();
         dialogueArea.text = "";
         lines.Clear();
 

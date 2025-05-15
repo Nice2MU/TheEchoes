@@ -66,12 +66,14 @@ public class CutsceneManager : MonoBehaviour
             ShowPanel(currentSceneIndex);
 
             float elapsedTime = 0f;
+
             while (elapsedTime < sceneTimes[currentSceneIndex] && !isSkipping)
             {
                 if (!isPaused)
                 {
                     elapsedTime += Time.unscaledDeltaTime;
                 }
+
                 yield return null;
             }
 
@@ -81,6 +83,7 @@ public class CutsceneManager : MonoBehaviour
                 currentSceneIndex++;
             }
         }
+
         ClosePanel();
     }
 
@@ -124,10 +127,12 @@ public class CutsceneManager : MonoBehaviour
         {
             panels[currentSceneIndex].SetActive(false);
             currentSceneIndex++;
+
             if (currentSceneIndex < panels.Length)
             {
                 ShowPanel(currentSceneIndex);
             }
+
             else
             {
                 ClosePanel();

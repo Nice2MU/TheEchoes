@@ -1,15 +1,14 @@
-﻿using System.Collections;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
-public class RambleAbility : MonoBehaviour, IMorphAbility
+public class RambleAbility : MonoBehaviour, AbilityManager
 {
     [Header("Movement")]
     public float moveSpeed = 2f;
     public float dashSpeed = 7f;
 
     [Header("Jump Charge")]
-    public float minJumpForce = 1f;
+    public float minJumpForce = 0.1f;
     public float maxJumpForce = 8f;
     public float chargeTime = 1f;
     public Slider jumpChargeBar;
@@ -24,15 +23,21 @@ public class RambleAbility : MonoBehaviour, IMorphAbility
     private Animator animator;
 
     private bool isDashing = false;
+    private float dashDelayTimer = 0f;
+    private float dashDelayDuration = 0.45f;
+    private bool dashQueued = false;
     private bool isChargingJump = false;
     private float chargeTimer = 0f;
     private bool isGrounded = false;
 
     private PlayerControl originalControl;
 
-    public DashHandler dashHandler;
+    public DashManager dashManager;
 
-    public void OnMorphEnter(GameObject playerObj)
+    private AudioSource audioSource;
+    private bool hasPlayedFall = false;
+
+    public void OnAbilityEnter(GameObject playerObj)
     {
         player = playerObj;
         rb = player.GetComponent<Rigidbody2D>();
@@ -40,6 +45,7 @@ public class RambleAbility : MonoBehaviour, IMorphAbility
         animator = player.GetComponent<Animator>();
 
         originalControl = player.GetComponent<PlayerControl>();
+
         if (originalControl != null)
         {
             originalControl.enabled = false;
@@ -47,9 +53,13 @@ public class RambleAbility : MonoBehaviour, IMorphAbility
 
         if (groundCheck == null)
             groundCheck = player.transform.Find("GroundCheck");
+
+        audioSource = player.GetComponent<AudioSource>();
+        if (audioSource == null)
+            audioSource = player.AddComponent<AudioSource>();
     }
 
-    public void OnMorphExit(GameObject playerObj)
+    public void OnAbilityExit(GameObject playerObj)
     {
         isDashing = false;
         isChargingJump = false;
@@ -61,32 +71,40 @@ public class RambleAbility : MonoBehaviour, IMorphAbility
         }
     }
 
-    public void PlayRevertAnimation(GameObject playerObj)
-    {
-
-    }
+    public void PlayRevertAnimation(GameObject playerObj) { }
 
     void Update()
     {
         if (player == null || rb == null) return;
 
-        HandleGroundCheck();
-        HandleMovement();
-        HandleDash();
-        HandleChargeJump();
-        HandleJumpChargeUI();
+        GroundCheck();
+        Movement();
+        Dash();
+        ChargeJump();
+        JumpChargeUI();
     }
 
-    void HandleGroundCheck()
+    void GroundCheck()
     {
         if (groundCheck != null)
         {
             isGrounded = Physics2D.OverlapCircle(groundCheck.position, 0.1f, groundLayer);
             animator.SetBool("isGrounded", isGrounded);
+
+            if (isGrounded && !hasPlayedFall)
+            {
+                SoundManager.instance.PlaySFX("FallRamble");
+                hasPlayedFall = true;
+            }
+
+            else if (!isGrounded)
+            {
+                hasPlayedFall = false;
+            }
         }
     }
 
-    void HandleMovement()
+    void Movement()
     {
         float moveInput = Input.GetAxisRaw("Horizontal");
         float currentSpeed = isChargingJump ? moveSpeed * 0.5f : moveSpeed;
@@ -98,21 +116,70 @@ public class RambleAbility : MonoBehaviour, IMorphAbility
         if (moveInput != 0)
         {
             spriteRenderer.flipX = moveInput < 0;
+
+            if (!isDashing && isGrounded)
+            {
+                if (!audioSource.isPlaying)
+                {
+                    audioSource.clip = SoundManager.instance.walkramble;
+                    audioSource.loop = false;
+                    audioSource.pitch = isChargingJump ? 0.8f : 1f;
+                    audioSource.Play();
+                }
+
+                else
+                {
+                    audioSource.pitch = isChargingJump ? 0.8f : 1f;
+                }
+            }
+        }
+
+        else
+        {
+            if (audioSource.isPlaying && audioSource.clip == SoundManager.instance.walkramble)
+            {
+                audioSource.Stop();
+            }
         }
     }
 
-    void HandleDash()
+    void Dash()
     {
         if (Input.GetKeyDown(KeyCode.E))
         {
-            isDashing = true;
-        }
-        if (Input.GetKeyUp(KeyCode.E))
-        {
             isDashing = false;
+            dashQueued = true;
+            dashDelayTimer = dashDelayDuration;
+
+            animator.SetBool("roll", true);
+
+            if (audioSource.clip != SoundManager.instance.rollramble)
+            {
+                audioSource.clip = SoundManager.instance.rollramble;
+                audioSource.loop = true;
+                audioSource.pitch = 1f;
+            }
         }
 
-        animator.SetBool("roll", isDashing);
+        if (Input.GetKeyUp(KeyCode.E))
+        {
+            dashQueued = false;
+            isDashing = false;
+            animator.SetBool("roll", false);
+
+            if (audioSource.isPlaying && audioSource.clip == SoundManager.instance.rollramble)
+                audioSource.Stop();
+        }
+
+        if (dashQueued)
+        {
+            dashDelayTimer -= Time.deltaTime;
+
+            if (dashDelayTimer <= 0f)
+            {
+                isDashing = true;
+            }
+        }
 
         if (isDashing)
         {
@@ -120,11 +187,21 @@ public class RambleAbility : MonoBehaviour, IMorphAbility
             Vector2 dashDir = isFacingRight ? Vector2.right : Vector2.left;
             rb.velocity = new Vector2(dashDir.x * dashSpeed, rb.velocity.y);
 
-            dashHandler.HandleDash(isDashing);
+            dashManager.Dash(true);
+
+            if (!audioSource.isPlaying)
+            {
+                audioSource.Play();
+            }
+        }
+
+        else
+        {
+            dashManager.Dash(false);
         }
     }
 
-    void HandleChargeJump()
+    void ChargeJump()
     {
         if (Input.GetKey(KeyCode.Space) && isGrounded)
         {
@@ -139,12 +216,14 @@ public class RambleAbility : MonoBehaviour, IMorphAbility
             rb.velocity = new Vector2(rb.velocity.x, jumpPower);
             animator.SetTrigger("jump");
 
+            SoundManager.instance.PlaySFX("JumpRamble");
+
             isChargingJump = false;
             chargeTimer = 0f;
         }
     }
 
-    void HandleJumpChargeUI()
+    void JumpChargeUI()
     {
         if (jumpChargeBar != null)
         {

@@ -25,6 +25,7 @@ public class ObjectData
             posY = rect.localPosition.y;
             posZ = rect.localPosition.z;
         }
+
         else
         {
             posX = transform.position.x;
@@ -53,6 +54,7 @@ public class ObjectData
         {
             rect.localPosition = new Vector3(posX, posY, posZ);
         }
+
         else
         {
             transform.position = new Vector3(posX, posY, posZ);
@@ -62,6 +64,7 @@ public class ObjectData
         transform.localScale = new Vector3(scaleX, scaleY, scaleZ);
 
         int i = 0;
+
         foreach (Transform child in transform)
         {
             if (i < childrenData.Count)

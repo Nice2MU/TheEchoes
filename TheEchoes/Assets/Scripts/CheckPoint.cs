@@ -8,7 +8,7 @@ public class Checkpoint : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
-            PlayerDeathHandler.lastCheckpointPosition = respawnPosition;
+            DeathManager.lastCheckpointPosition = respawnPosition;
         }
     }
 

@@ -36,6 +36,7 @@ public class TutorialManager : MonoBehaviour
                 {
                     tutorialButton.SetActive(true);
                 }
+
                 return;
             }
         }
@@ -56,6 +57,7 @@ public class TutorialManager : MonoBehaviour
             gifObjects[currentGifIndex].SetActive(true);
             tutorialButton.SetActive(false);
         }
+
         else
         {
 
