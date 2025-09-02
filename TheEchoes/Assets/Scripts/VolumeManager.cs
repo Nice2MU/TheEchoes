@@ -51,7 +51,11 @@ public class VolumeManager : MonoBehaviour
             if (SoundManager.instance.distanceSource != null)
                 SoundManager.instance.distanceSource.volume = sfxVolume;
 
-            SoundManager.instance.musicSource.volume = musicVolume;
+            if (SoundManager.instance.uiSource != null)
+                SoundManager.instance.uiSource.volume = sfxVolume;
+
+            if (SoundManager.instance.musicSource != null)
+                SoundManager.instance.musicSource.volume = musicVolume;
         }
     }
 

@@ -1,0 +1,598 @@
+fileFormatVersion: 2
+guid: 47829fb8c235f4b41892b35a0215ef28
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 1342497155425643864
+    second: ps5-controller-sheet_0
+  - first:
+      213: -5983131208976362631
+    second: ps5-controller-sheet_1
+  - first:
+      213: -749054944212374678
+    second: ps5-controller-sheet_2
+  - first:
+      213: 1520818119850925867
+    second: ps5-controller-sheet_3
+  - first:
+      213: -3242601576170319658
+    second: ps5-controller-sheet_4
+  - first:
+      213: 6262178368601884923
+    second: ps5-controller-sheet_5
+  - first:
+      213: -7279941096933253467
+    second: ps5-controller-sheet_6
+  - first:
+      213: 3096727273763821520
+    second: ps5-controller-sheet_7
+  - first:
+      213: 9001364557877358347
+    second: ps5-controller-sheet_8
+  - first:
+      213: 5560642901673631029
+    second: ps5-controller-sheet_9
+  - first:
+      213: 1038911415099513198
+    second: ps5-controller-sheet_10
+  - first:
+      213: -656554224290214451
+    second: ps5-controller-sheet_11
+  - first:
+      213: -9109370045533314085
+    second: ps5-controller-sheet_12
+  - first:
+      213: 3822187646780621372
+    second: ps5-controller-sheet_13
+  - first:
+      213: 6201919890682535200
+    second: ps5-controller-sheet_14
+  - first:
+      213: 5332551787162159137
+    second: ps5-controller-sheet_15
+  - first:
+      213: -4568901228694060535
+    second: ps5-controller-sheet_16
+  - first:
+      213: -7247628960569080141
+    second: ps5-controller-sheet_17
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: ps5-controller-sheet_0
+      rect:
+        serializedVersion: 2
+        x: 5
+        y: 712
+        width: 215
+        height: 149
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 85d2e1dcc0281a210800000000000000
+      internalID: 1342497155425643864
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ps5-controller-sheet_1
+      rect:
+        serializedVersion: 2
+        x: 230
+        y: 712
+        width: 215
+        height: 149
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 973196c8dd5a7fca0800000000000000
+      internalID: -5983131208976362631
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ps5-controller-sheet_2
+      rect:
+        serializedVersion: 2
+        x: 455
+        y: 712
+        width: 215
+        height: 149
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a6ba8f43f72da95f0800000000000000
+      internalID: -749054944212374678
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ps5-controller-sheet_3
+      rect:
+        serializedVersion: 2
+        x: 680
+        y: 712
+        width: 215
+        height: 149
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b2f11b9b5080b1510800000000000000
+      internalID: 1520818119850925867
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ps5-controller-sheet_4
+      rect:
+        serializedVersion: 2
+        x: 905
+        y: 712
+        width: 215
+        height: 149
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6d01f38eb07fff2d0800000000000000
+      internalID: -3242601576170319658
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ps5-controller-sheet_5
+      rect:
+        serializedVersion: 2
+        x: 5
+        y: 487
+        width: 215
+        height: 149
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bf886ac3c0ab7e650800000000000000
+      internalID: 6262178368601884923
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ps5-controller-sheet_6
+      rect:
+        serializedVersion: 2
+        x: 230
+        y: 487
+        width: 215
+        height: 149
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5ae9683a42478fa90800000000000000
+      internalID: -7279941096933253467
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ps5-controller-sheet_7
+      rect:
+        serializedVersion: 2
+        x: 455
+        y: 487
+        width: 215
+        height: 149
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0d7d4fe5c09c9fa20800000000000000
+      internalID: 3096727273763821520
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ps5-controller-sheet_8
+      rect:
+        serializedVersion: 2
+        x: 680
+        y: 487
+        width: 215
+        height: 149
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b0f2216cf554bec70800000000000000
+      internalID: 9001364557877358347
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ps5-controller-sheet_9
+      rect:
+        serializedVersion: 2
+        x: 905
+        y: 487
+        width: 215
+        height: 149
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 53ddd0de14f5b2d40800000000000000
+      internalID: 5560642901673631029
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ps5-controller-sheet_10
+      rect:
+        serializedVersion: 2
+        x: 5
+        y: 262
+        width: 215
+        height: 149
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e69da1a7d64fa6e00800000000000000
+      internalID: 1038911415099513198
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ps5-controller-sheet_11
+      rect:
+        serializedVersion: 2
+        x: 230
+        y: 262
+        width: 215
+        height: 149
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dcd466d596373e6f0800000000000000
+      internalID: -656554224290214451
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ps5-controller-sheet_12
+      rect:
+        serializedVersion: 2
+        x: 455
+        y: 262
+        width: 215
+        height: 149
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bd327640534059180800000000000000
+      internalID: -9109370045533314085
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ps5-controller-sheet_13
+      rect:
+        serializedVersion: 2
+        x: 680
+        y: 262
+        width: 215
+        height: 149
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c32ce37f9632b0530800000000000000
+      internalID: 3822187646780621372
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ps5-controller-sheet_14
+      rect:
+        serializedVersion: 2
+        x: 905
+        y: 262
+        width: 215
+        height: 149
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 02ddf890845a11650800000000000000
+      internalID: 6201919890682535200
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ps5-controller-sheet_15
+      rect:
+        serializedVersion: 2
+        x: 5
+        y: 37
+        width: 215
+        height: 149
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 128cc2ce897010a40800000000000000
+      internalID: 5332551787162159137
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ps5-controller-sheet_16
+      rect:
+        serializedVersion: 2
+        x: 230
+        y: 37
+        width: 215
+        height: 149
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 90248d12a800890c0800000000000000
+      internalID: -4568901228694060535
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ps5-controller-sheet_17
+      rect:
+        serializedVersion: 2
+        x: 455
+        y: 37
+        width: 215
+        height: 149
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3b642752cdf3b6b90800000000000000
+      internalID: -7247628960569080141
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      ps5-controller-sheet_0: 1342497155425643864
+      ps5-controller-sheet_1: -5983131208976362631
+      ps5-controller-sheet_10: 1038911415099513198
+      ps5-controller-sheet_11: -656554224290214451
+      ps5-controller-sheet_12: -9109370045533314085
+      ps5-controller-sheet_13: 3822187646780621372
+      ps5-controller-sheet_14: 6201919890682535200
+      ps5-controller-sheet_15: 5332551787162159137
+      ps5-controller-sheet_16: -4568901228694060535
+      ps5-controller-sheet_17: -7247628960569080141
+      ps5-controller-sheet_2: -749054944212374678
+      ps5-controller-sheet_3: 1520818119850925867
+      ps5-controller-sheet_4: -3242601576170319658
+      ps5-controller-sheet_5: 6262178368601884923
+      ps5-controller-sheet_6: -7279941096933253467
+      ps5-controller-sheet_7: 3096727273763821520
+      ps5-controller-sheet_8: 9001364557877358347
+      ps5-controller-sheet_9: 5560642901673631029
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

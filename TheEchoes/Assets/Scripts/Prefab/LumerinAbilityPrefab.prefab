@@ -44,6 +44,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e1f4bfba6499b3544be5969227ea9915, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  moveAction: {fileID: -7507913330506015614, guid: 1aa6f7717fade5745aec0f5bd989e3ec, type: 3}
+  jumpAction: {fileID: 8926905702575814991, guid: 1aa6f7717fade5745aec0f5bd989e3ec, type: 3}
+  abilityAction: {fileID: -8976629018878435608, guid: 1aa6f7717fade5745aec0f5bd989e3ec, type: 3}
   moveSpeed: 2
   groundMoveSpeed: 0.5
   sinkSpeed: 1

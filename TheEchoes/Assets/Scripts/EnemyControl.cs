@@ -106,6 +106,7 @@ public class EnemyControl : MonoBehaviour
             {
                 if (loop)
                     currentWaypointIndex = 0;
+
                 else
                     break;
             }

@@ -2,15 +2,20 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.InputSystem;
 
 public class ConsumeControl : MonoBehaviour
 {
+    public InputActionReference moveAction;
+    public InputActionReference consumeAction;
+
+    [Header("Setting Consume")]
     public Animator animator;
     public SpriteRenderer playerSprite;
     public Sprite defaultMorphIcon;
     public Image morphIcon;
     public Slider pawerBar;
-    
+
     public float consumeRange = 1f;
     public float morphDuration = 60f;
     public float consumeDelay = 1f;
@@ -66,12 +71,31 @@ public class ConsumeControl : MonoBehaviour
         UpdateMorphIcon();
     }
 
+    void OnEnable()
+    {
+        if (consumeAction != null)
+            consumeAction.action.Enable();
+
+        if (moveAction != null)
+            moveAction.action.Enable();
+    }
+
+    void OnDisable()
+    {
+        if (consumeAction != null)
+            consumeAction.action.Disable();
+
+        if (moveAction != null)
+            moveAction.action.Disable();
+    }
+
     void Update()
     {
         Direction();
+
         isInWater = IsInWater();
 
-        if (Input.GetKeyDown(KeyCode.F))
+        if (consumeAction != null && consumeAction.action.triggered)
         {
             if (isMorphing && hasStoredMorph && !isInWater)
             {
@@ -105,16 +129,19 @@ public class ConsumeControl : MonoBehaviour
 
     void Direction()
     {
-        float moveInput = Input.GetAxisRaw("Horizontal");
-
-        if (Mathf.Abs(moveInput) > 0.01f || Mathf.Abs(rb.velocity.x) > 0.01f)
+        if (moveAction != null)
         {
-            bool newFacingRight = moveInput > 0 || rb.velocity.x > 0;
+            Vector2 moveInput = moveAction.action.ReadValue<Vector2>();
+
+            if (Mathf.Abs(moveInput.x) > 0.01f || Mathf.Abs(rb.linearVelocity.x) > 0.01f)
+            {
+                bool newFacingRight = moveInput.x > 0 || rb.linearVelocity.x > 0;
 
             if (newFacingRight != isFacingRight)
-            {
-                isFacingRight = newFacingRight;
-                playerSprite.flipX = !isFacingRight;
+                {
+                    isFacingRight = newFacingRight;
+                    playerSprite.flipX = !isFacingRight;
+                }
             }
         }
     }
@@ -180,6 +207,7 @@ public class ConsumeControl : MonoBehaviour
             if (data.tag == tag)
                 return data;
         }
+
         return null;
     }
 
@@ -190,6 +218,7 @@ public class ConsumeControl : MonoBehaviour
             if (data.animatorController == controller)
                 return data;
         }
+
         return null;
     }
 
@@ -257,6 +286,7 @@ public class ConsumeControl : MonoBehaviour
                 lastMorphTimeLeft = pawerBar.value;
                 hasStoredMorph = true;
             }
+
             else
             {
                 lastMorphData = null;
@@ -272,11 +302,6 @@ public class ConsumeControl : MonoBehaviour
         animator.runtimeAnimatorController = originalController;
         animator.Rebind();
         animator.Update(0f);
-
-        if (pawerBar != null)
-        {
-            pawerBar.value = 0f;
-        }
 
         if (morphTimerCoroutine != null)
         {
@@ -384,6 +409,7 @@ public class ConsumeControl : MonoBehaviour
             {
                 consumedObj.SetActive(true);
                 ObjectReset resetScript = consumedObj.GetComponent<ObjectReset>();
+
                 if (resetScript != null)
                 {
                     resetScript.ResetState();

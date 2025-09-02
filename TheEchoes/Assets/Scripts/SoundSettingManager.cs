@@ -10,13 +10,13 @@ public class SoundSettingManager : MonoBehaviour
 
     void Start()
     {
+        masterVolumeSlider.SetValueWithoutNotify(VolumeManager.instance.masterVolume);
+        sfxVolumeSlider.SetValueWithoutNotify(VolumeManager.instance.sfxVolume);
+        musicVolumeSlider.SetValueWithoutNotify(VolumeManager.instance.musicVolume);
+
         masterVolumeSlider.onValueChanged.AddListener(VolumeManager.instance.SetMasterVolume);
         sfxVolumeSlider.onValueChanged.AddListener(VolumeManager.instance.SetSFXVolume);
         musicVolumeSlider.onValueChanged.AddListener(VolumeManager.instance.SetMusicVolume);
-
-        masterVolumeSlider.value = VolumeManager.instance.masterVolume;
-        sfxVolumeSlider.value = VolumeManager.instance.sfxVolume;
-        musicVolumeSlider.value = VolumeManager.instance.musicVolume; 
     }
 
     public void SetMasterVolume(float volume)
@@ -34,7 +34,11 @@ public class SoundSettingManager : MonoBehaviour
 
             if (SoundManager.instance.distanceSource != null)
                 SoundManager.instance.distanceSource.volume = volume;
+
+            if (SoundManager.instance.uiSource != null)
+                SoundManager.instance.uiSource.volume = volume;
         }
+
         PlayerPrefs.SetFloat("SFXVolume", volume);
     }
 
@@ -42,6 +46,7 @@ public class SoundSettingManager : MonoBehaviour
     {
         if (SoundManager.instance != null)
             SoundManager.instance.musicSource.volume = volume;
+
         PlayerPrefs.SetFloat("MusicVolume", volume);
     }
 }

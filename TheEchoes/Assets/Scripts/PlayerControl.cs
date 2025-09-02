@@ -1,9 +1,13 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
+using UnityEngine.InputSystem;
 
 public class PlayerControl : MonoBehaviour
 {
+    public InputActionReference moveAction;
+    public InputActionReference jumpAction;
+
     [Header("Setting Movement")]
     public float speed = 1.6f;
     public float minJumpForce = 0.1f;
@@ -39,12 +43,11 @@ public class PlayerControl : MonoBehaviour
 
     private bool hasPlayedWalkSFX = false;
     private bool hasPlayedClimbSFX = false;
-    private bool wasClimbingBeforeFall = false;
     private bool hasPlayedDrownSFX = false;
 
     [Header("Rolling Movement")]
     public float slideSpeed = 50f;
-    public string slideTag = "SlideArea";
+    public string slideTag = "Slide";
     public float smoothTime = 0.1f;
     public float maxSpeed = 3.5f;
     public float dragMultiplier = 0.1f;
@@ -65,16 +68,48 @@ public class PlayerControl : MonoBehaviour
     private float maxHeight = 0.5f;
 
     private float vineGrabCooldown = 0.5f;
-
     private bool isClimbingSoundPlaying = false;
     private bool isOnVine = false;
     private bool canGrabVine = true;
+
+    private float stickCooldown = 0.2f;
+    private float stickCooldownTimer = 0f;
+
     private Transform grabZone;
     private Rigidbody2D vineRigidbody;
     private DistanceJoint2D joint;
 
+    private Vector2 moveInput = Vector2.zero;
+    private bool jumpHeld = false;
+    private bool jumpReleased = false;
+    private bool jumpDownThisFrame = false;
+
+    void Awake()
+    {
+        moveAction.action.Enable();
+        jumpAction.action.Enable();
+
+        moveAction.action.performed += ctx => moveInput = ctx.ReadValue<Vector2>();
+        moveAction.action.canceled += ctx => moveInput = Vector2.zero;
+
+        jumpAction.action.performed += ctx =>
+        {
+            jumpHeld = true;
+            jumpDownThisFrame = true;
+        };
+
+        jumpAction.action.canceled += ctx =>
+        {
+            jumpHeld = false;
+            jumpReleased = true;
+        };
+    }
+
     void Start()
     {
+        moveAction.action.Enable();
+        jumpAction.action.Enable();
+
         animator = GetComponent<Animator>();
         rb = GetComponent<Rigidbody2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
@@ -85,8 +120,8 @@ public class PlayerControl : MonoBehaviour
 
         originalDrag = dragMultiplier;
         rb.collisionDetectionMode = CollisionDetectionMode2D.Discrete;
-        rb.drag = originalDrag;
-        rb.angularDrag = originalDrag;
+        rb.linearDamping = originalDrag;
+        rb.angularDamping = originalDrag;
 
         if (jumpChargeBar != null)
             jumpChargeBar.value = 0;
@@ -96,7 +131,7 @@ public class PlayerControl : MonoBehaviour
     {
         if (!canMove) return;
 
-        float moveX = Input.GetAxis("Horizontal");
+        float moveX = moveInput.x;
 
         bool wasGrounded = isGrounded;
         isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
@@ -116,12 +151,11 @@ public class PlayerControl : MonoBehaviour
         if (isGrounded && !wasGrounded)
         {
             SoundManager.instance?.PlaySFX("Fall");
-            wasClimbingBeforeFall = false;
         }
 
         if (isGrounded)
         {
-            if (moveX != 0 && !Input.GetButton("Jump") && !isSliding)
+            if (moveX != 0 && !jumpHeld && !isSliding)
             {
                 if (enableWalkingEffect)
                 {
@@ -167,23 +201,22 @@ public class PlayerControl : MonoBehaviour
 
         if (!isSticking && isWalking && !isSliding)
         {
-            if (!Input.GetButton("Jump") || !isGrounded)
-                rb.velocity = new Vector2(moveX * speed, rb.velocity.y);
+            if (!jumpHeld || !isGrounded)
+                rb.linearVelocity = new Vector2(moveX * speed, rb.linearVelocity.y);
 
             else
-                rb.velocity = new Vector2(0, rb.velocity.y);
+                rb.linearVelocity = new Vector2(0, rb.linearVelocity.y);
         }
 
         else if (isWalking && !isSliding)
         {
-            rb.velocity = new Vector2(moveX * speed, 0f);
+            rb.linearVelocity = new Vector2(moveX * speed, 0f);
 
             if (!playerCollider.IsTouchingLayers(ceilingLayer))
             {
                 isSticking = false;
                 rb.gravityScale = 1f;
                 animator.SetBool("stick", false);
-                wasClimbingBeforeFall = true;
             }
         }
 
@@ -195,11 +228,11 @@ public class PlayerControl : MonoBehaviour
 
         if (isSliding)
         {
-            rb.drag = 0f;
+            rb.linearDamping = 0f;
             currentSpeed = Mathf.MoveTowards(currentSpeed, slideSpeed, smoothTime * Time.deltaTime * slideSpeed);
             currentSpeed = Mathf.Min(currentSpeed, maxSpeed);
 
-            rb.velocity = new Vector2(currentSpeed * Mathf.Sign(transform.localScale.x), rb.velocity.y);
+            rb.linearVelocity = new Vector2(currentSpeed * Mathf.Sign(transform.localScale.x), rb.linearVelocity.y);
             animator.SetBool("isSliding", true);
 
             if (!hasPlayedRollSFX)
@@ -209,7 +242,7 @@ public class PlayerControl : MonoBehaviour
                 Invoke(nameof(ResetRollSFX), 0.4f);
             }
 
-            if (Input.GetButton("Jump") && isGrounded)
+            if (jumpHeld && isGrounded)
             {
                 chargeDuration += Time.deltaTime * chargeTime;
                 chargeDuration = Mathf.Min(chargeDuration, 1f);
@@ -220,17 +253,17 @@ public class PlayerControl : MonoBehaviour
                     jumpChargeBar.value = chargeDuration;
             }
 
-            else if (Input.GetButtonDown("Jump") && isGrounded)
+            else if (jumpDownThisFrame && isGrounded)
             {
                 chargeDuration = 0f;
                 isChargingJump = true;
                 animator.SetBool("isChargingJump", true);
             }
 
-            if (Input.GetButtonUp("Jump") && isChargingJump)
+            if (jumpReleased && isChargingJump)
             {
                 float jumpPower = Mathf.Lerp(minJumpForce, maxJumpForce, chargeDuration);
-                rb.velocity = new Vector2(rb.velocity.x, jumpPower);
+                rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpPower);
                 animator.SetTrigger("jump");
 
                 if (chargeDuration <= 0.3f)
@@ -250,11 +283,11 @@ public class PlayerControl : MonoBehaviour
 
         else
         {
-            rb.drag = originalDrag;
+            rb.linearDamping = originalDrag;
             animator.SetBool("isSliding", false);
             currentSpeed = 0f;
 
-            if (Input.GetButton("Jump") && isGrounded && !isSticking)
+            if (jumpHeld && isGrounded && !isSticking)
             {
                 jumpCharge += Time.deltaTime / chargeTime;
                 jumpCharge = Mathf.Clamp(jumpCharge, 0f, 1f);
@@ -262,10 +295,10 @@ public class PlayerControl : MonoBehaviour
                 if (jumpChargeBar != null) jumpChargeBar.value = jumpCharge;
             }
 
-            if (Input.GetButtonUp("Jump") && isGrounded && !isSticking)
+            if (jumpReleased && isGrounded && !isSticking)
             {
                 float jumpPower = Mathf.Lerp(minJumpForce, maxJumpForce, jumpCharge);
-                rb.velocity = new Vector2(moveX * speed, jumpPower);
+                rb.linearVelocity = new Vector2(moveX * speed, jumpPower);
                 animator.SetTrigger("jump");
 
                 if (jumpCharge <= 0.3f)
@@ -280,10 +313,11 @@ public class PlayerControl : MonoBehaviour
             }
         }
 
-        if (!isSticking && !isGrounded && playerCollider.IsTouchingLayers(ceilingLayer))
+        if (!isSticking && !isGrounded && playerCollider.IsTouchingLayers(ceilingLayer) && stickCooldownTimer <= 0f)
+
         {
             isSticking = true;
-            rb.velocity = Vector2.zero;
+            rb.linearVelocity = Vector2.zero;
             rb.gravityScale = 0f;
             animator.SetBool("stick", true);
         }
@@ -298,14 +332,14 @@ public class PlayerControl : MonoBehaviour
             }
         }
 
-        if (isSticking && Input.GetButtonDown("Jump"))
+        if (isSticking && jumpDownThisFrame)
         {
             isSticking = false;
             rb.gravityScale = 1f;
-            rb.velocity = new Vector2(rb.velocity.x, 0);
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0);
             animator.SetBool("stick", false);
 
-            wasClimbingBeforeFall = true;
+            stickCooldownTimer = stickCooldown;
         }
 
         if (!isGrounded && !isSticking)
@@ -313,15 +347,21 @@ public class PlayerControl : MonoBehaviour
             rb.gravityScale = 1f;
         }
 
+        if (stickCooldownTimer > 0f)
+            stickCooldownTimer -= Time.deltaTime;
+
         if (isOnVine)
         {
             HandleClimbInput();
 
-            if (Input.GetKeyDown(KeyCode.Space))
+            if (jumpAction.action.triggered)
             {
                 ReleaseVine();
             }
         }
+
+        jumpDownThisFrame = false;
+        jumpReleased = false;
     }
 
     private void OnTriggerEnter2D(Collider2D other)
@@ -331,7 +371,7 @@ public class PlayerControl : MonoBehaviour
             isSliding = true;
         }
 
-        if (canGrabVine && other.CompareTag("GrabZone"))
+        if (canGrabVine && other.CompareTag("Grab"))
         {
             grabZone = other.transform;
             vineRigidbody = grabZone.GetComponentInParent<Rigidbody2D>();
@@ -366,7 +406,7 @@ public class PlayerControl : MonoBehaviour
 
     private void HandleClimbInput()
     {
-        float input = Input.GetAxisRaw("Vertical");
+        float input = moveInput.y;
 
         if (Mathf.Abs(input) > 0.01f)
         {
@@ -403,7 +443,7 @@ public class PlayerControl : MonoBehaviour
 
         StartCoroutine(VineGrabCooldownRoutine());
 
-        rb.velocity = new Vector2(rb.velocity.x, 0);
+        rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0);
 
         SoundManager.instance.PlaySFX("Jump");
 

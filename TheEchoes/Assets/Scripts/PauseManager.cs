@@ -1,7 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.SceneManagement;
+﻿using UnityEngine;
 
 public class PauseManager : MonoBehaviour
 {
@@ -47,6 +44,9 @@ public class PauseManager : MonoBehaviour
         Time.timeScale = 0;
         gamePaused = true;
         pauseMenu.SetActive(true);
+
+        if (SoundManager.instance != null)
+            SoundManager.instance.MuteAll(true);
     }
 
     void ResumeGame()
@@ -54,5 +54,8 @@ public class PauseManager : MonoBehaviour
         Time.timeScale = 1;
         gamePaused = false;
         pauseMenu.SetActive(false);
+
+        if (SoundManager.instance != null)
+            SoundManager.instance.MuteAll(false);
     }
 }

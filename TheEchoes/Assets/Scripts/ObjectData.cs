@@ -9,7 +9,6 @@ public class ObjectData
     public float rotX, rotY, rotZ, rotW;
     public float scaleX, scaleY, scaleZ;
     public List<ObjectData> childrenData = new List<ObjectData>();
-
     public bool isRectTransform;
 
     public ObjectData() { }
@@ -64,7 +63,6 @@ public class ObjectData
         transform.localScale = new Vector3(scaleX, scaleY, scaleZ);
 
         int i = 0;
-
         foreach (Transform child in transform)
         {
             if (i < childrenData.Count)

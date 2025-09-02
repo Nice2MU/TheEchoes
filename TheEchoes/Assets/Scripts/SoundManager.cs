@@ -8,6 +8,7 @@ public class SoundManager : MonoBehaviour
     public AudioSource effectSource;
     public AudioSource distanceSource;
     public AudioSource musicSource;
+    public AudioSource uiSource;
 
     [Header("UI Clips")]
     public AudioClip start;
@@ -83,21 +84,21 @@ public class SoundManager : MonoBehaviour
         switch (sfxName)
         {
             //-----------------------------UI-----------------------------
-            case "Start": effectSource.PlayOneShot(start); break;
+            case "Start": uiSource.PlayOneShot(start); break;
 
-            case "Point": effectSource.PlayOneShot(point); break;
+            case "Point": uiSource.PlayOneShot(point); break;
 
-            case "Click": effectSource.PlayOneShot(click); break;
+            case "Click": uiSource.PlayOneShot(click); break;
 
-            case "Typing": effectSource.PlayOneShot(typing); break;
+            case "Typing": uiSource.PlayOneShot(typing); break;
 
-            case "Lock": effectSource.PlayOneShot(locks); break;
+            case "Lock": uiSource.PlayOneShot(locks); break;
 
-            case "Unlock": effectSource.PlayOneShot(unlock); break;
+            case "Unlock": uiSource.PlayOneShot(unlock); break;
 
-            case "Save": effectSource.PlayOneShot(save); break;
+            case "Save": uiSource.PlayOneShot(save); break;
 
-            case "Delete": effectSource.PlayOneShot(delete); break;
+            case "Delete": uiSource.PlayOneShot(delete); break;
 
             //---------------------------Action---------------------------
             case "Walk": effectSource.PlayOneShot(walk); break;
@@ -170,5 +171,12 @@ public class SoundManager : MonoBehaviour
             default:
                 break;
         }
+    }
+
+    public void MuteAll(bool mute)
+    {
+        if (effectSource != null) effectSource.mute = mute;
+        if (musicSource != null) musicSource.mute = mute;
+        if (distanceSource != null) distanceSource.mute = mute;
     }
 }

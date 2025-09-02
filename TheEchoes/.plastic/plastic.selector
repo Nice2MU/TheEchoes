@@ -1,4 +1,4 @@
-repository "TheEchoes/TheEchoe@18968167131244@cloud"
+repository "TheEchoes/TheEchoes@18968167131244@cloud"
   path "/"
     br "/main"
     co "/main"

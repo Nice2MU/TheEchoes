@@ -20,7 +20,7 @@ public class ObjectReset : MonoBehaviour
 
         if (rb != null)
         {
-            rb.velocity = Vector2.zero;
+            rb.linearVelocity = Vector2.zero;
             rb.angularVelocity = 0f;
             rb.gravityScale = 1f;
             rb.bodyType = RigidbodyType2D.Kinematic;

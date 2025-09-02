@@ -4,7 +4,6 @@ public class ParallaxBackground : MonoBehaviour
 {
     Transform cam;
     Vector3 camStartPos;
-    float distance;
 
     GameObject[] backgrounds;
     Material[] mat;
@@ -16,9 +15,6 @@ public class ParallaxBackground : MonoBehaviour
     public float parallaxSpeed = 0.03f;
 
     public Vector3[] customStartPositions;
-
-    [Header("Pixel Art Settings")]
-    public float pixelsPerUnit = 100f;
 
     private Vector3[] velocity;
 

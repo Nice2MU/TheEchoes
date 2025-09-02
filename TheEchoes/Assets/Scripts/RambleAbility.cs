@@ -1,8 +1,13 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.InputSystem;
 
 public class RambleAbility : MonoBehaviour, AbilityManager
 {
+    public InputActionReference moveAction;
+    public InputActionReference jumpAction;
+    public InputActionReference abilityAction;
+
     [Header("Movement")]
     public float moveSpeed = 2f;
     public float dashSpeed = 7f;
@@ -31,7 +36,6 @@ public class RambleAbility : MonoBehaviour, AbilityManager
     private bool isGrounded = false;
 
     private PlayerControl originalControl;
-
     public DashManager dashManager;
 
     private AudioSource audioSource;
@@ -55,8 +59,13 @@ public class RambleAbility : MonoBehaviour, AbilityManager
             groundCheck = player.transform.Find("GroundCheck");
 
         audioSource = player.GetComponent<AudioSource>();
+
         if (audioSource == null)
             audioSource = player.AddComponent<AudioSource>();
+
+        moveAction.action.Enable();
+        jumpAction.action.Enable();
+        abilityAction.action.Enable();
     }
 
     public void OnAbilityExit(GameObject playerObj)
@@ -69,6 +78,10 @@ public class RambleAbility : MonoBehaviour, AbilityManager
         {
             originalControl.enabled = true;
         }
+
+        moveAction.action.Disable();
+        jumpAction.action.Disable();
+        abilityAction.action.Disable();
     }
 
     public void PlayRevertAnimation(GameObject playerObj) { }
@@ -106,16 +119,20 @@ public class RambleAbility : MonoBehaviour, AbilityManager
 
     void Movement()
     {
-        float moveInput = Input.GetAxisRaw("Horizontal");
+        Vector2 moveInput = moveAction.action.ReadValue<Vector2>();
+        float moveX = moveInput.x;
         float currentSpeed = isChargingJump ? moveSpeed * 0.5f : moveSpeed;
-        rb.velocity = new Vector2(moveInput * currentSpeed, rb.velocity.y);
+
+        var vel = rb.linearVelocity;
+        vel.x = moveX * currentSpeed;
+        rb.linearVelocity = vel;
 
         animator.SetBool("chargeJump", isChargingJump);
-        animator.SetBool("walk", moveInput != 0);
+        animator.SetBool("walk", moveX != 0);
 
-        if (moveInput != 0)
+        if (moveX != 0)
         {
-            spriteRenderer.flipX = moveInput < 0;
+            spriteRenderer.flipX = moveX < 0;
 
             if (!isDashing && isGrounded)
             {
@@ -145,7 +162,7 @@ public class RambleAbility : MonoBehaviour, AbilityManager
 
     void Dash()
     {
-        if (Input.GetKeyDown(KeyCode.E))
+        if (abilityAction.action.triggered && !dashQueued)
         {
             isDashing = false;
             dashQueued = true;
@@ -161,7 +178,7 @@ public class RambleAbility : MonoBehaviour, AbilityManager
             }
         }
 
-        if (Input.GetKeyUp(KeyCode.E))
+        if (!abilityAction.action.IsPressed())
         {
             dashQueued = false;
             isDashing = false;
@@ -185,7 +202,10 @@ public class RambleAbility : MonoBehaviour, AbilityManager
         {
             bool isFacingRight = !spriteRenderer.flipX;
             Vector2 dashDir = isFacingRight ? Vector2.right : Vector2.left;
-            rb.velocity = new Vector2(dashDir.x * dashSpeed, rb.velocity.y);
+
+            var vel = rb.linearVelocity;
+            vel.x = dashDir.x * dashSpeed;
+            rb.linearVelocity = vel;
 
             dashManager.Dash(true);
 
@@ -203,17 +223,21 @@ public class RambleAbility : MonoBehaviour, AbilityManager
 
     void ChargeJump()
     {
-        if (Input.GetKey(KeyCode.Space) && isGrounded)
+        if (jumpAction.action.IsPressed() && isGrounded)
         {
             isChargingJump = true;
             chargeTimer += Time.deltaTime / chargeTime;
             chargeTimer = Mathf.Clamp01(chargeTimer);
         }
 
-        if (Input.GetKeyUp(KeyCode.Space) && isChargingJump && isGrounded)
+        if (!jumpAction.action.IsPressed() && isChargingJump && isGrounded)
         {
             float jumpPower = Mathf.Lerp(minJumpForce, maxJumpForce, chargeTimer);
-            rb.velocity = new Vector2(rb.velocity.x, jumpPower);
+
+            var vel = rb.linearVelocity;
+            vel.y = jumpPower;
+            rb.linearVelocity = vel;
+
             animator.SetTrigger("jump");
 
             SoundManager.instance.PlaySFX("JumpRamble");

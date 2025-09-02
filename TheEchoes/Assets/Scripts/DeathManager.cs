@@ -8,6 +8,15 @@ public class DeathManager : MonoBehaviour
 
     private ConsumeControl consumeControl;
 
+    void Update() //ใช้ในช่วงเทส ปุ่มรี
+    {
+        if (Input.GetKeyDown(KeyCode.RightBracket))
+        {
+            health = 0f;
+            Respawn();
+        }
+    }
+
     void Start()
     {
         lastCheckpointPosition = transform.position;
@@ -22,7 +31,7 @@ public class DeathManager : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.CompareTag("Water"))
+        if (other.CompareTag("Respawn"))
         {
             health = 0f;
             Respawn();
@@ -49,6 +58,12 @@ public class DeathManager : MonoBehaviour
             consumeControl.RestoreConsumedObjects();
             consumeControl.RevertToOriginalForm();
             consumeControl.SetHasStoredMorph(false);
+
+            if (consumeControl.pawerBar != null)
+            {
+                consumeControl.pawerBar.value = 0f;
+            }
+
             PlayerPrefs.DeleteKey("LastMorphTag");
             PlayerPrefs.DeleteKey("LastMorphTimeLeft");
             PlayerPrefs.Save();

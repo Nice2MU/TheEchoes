@@ -1,9 +1,14 @@
 ﻿using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.InputSystem;
 
 public class LumerinAbility : MonoBehaviour, AbilityManager
 {
+    public InputActionReference moveAction;
+    public InputActionReference jumpAction;
+    public InputActionReference abilityAction;
+
     [Header("Movement")]
     public float moveSpeed = 2f;
     public float groundMoveSpeed = 0.5f;
@@ -43,6 +48,20 @@ public class LumerinAbility : MonoBehaviour, AbilityManager
     private bool isPlayingOnGroundSound = false;
     private bool isPlayingSwimSound = false;
     private bool wasInWater = false;
+
+    void OnEnable()
+    {
+        moveAction?.action.Enable();
+        jumpAction?.action.Enable();
+        abilityAction?.action.Enable();
+    }
+
+    void OnDisable()
+    {
+        moveAction?.action.Disable();
+        jumpAction?.action.Disable();
+        abilityAction?.action.Disable();
+    }
 
     public void OnAbilityEnter(GameObject playerObj)
     {
@@ -155,76 +174,17 @@ public class LumerinAbility : MonoBehaviour, AbilityManager
         }
     }
 
-    void SwimBoost()
-    {
-        if (isInWater)
-        {
-            if (Input.GetKey(KeyCode.E) && currentBoost > 0f)
-            {
-                isBoosting = true;
-                currentBoost -= boostConsumptionRate * Time.deltaTime;
-                currentBoost = Mathf.Clamp(currentBoost, 0f, maxBoost);
-                animator.SetBool("swimboost", true);
-
-                if (!SoundManager.instance.effectSource.isPlaying || SoundManager.instance.effectSource.clip != SoundManager.instance.boostlumerin)
-                {
-                    SoundManager.instance.effectSource.loop = true;
-                    SoundManager.instance.effectSource.clip = SoundManager.instance.boostlumerin;
-                    SoundManager.instance.effectSource.Play();
-                }
-            }
-
-            else
-            {
-                if (isBoosting)
-                {
-                    if (SoundManager.instance.effectSource.isPlaying && SoundManager.instance.effectSource.clip == SoundManager.instance.boostlumerin)
-                    {
-                        SoundManager.instance.effectSource.Stop();
-                    }
-                }
-
-                isBoosting = false;
-                animator.SetBool("swimboost", false);
-
-                if (Mathf.Abs(rb.velocity.x) > 0 && (!SoundManager.instance.effectSource.isPlaying || SoundManager.instance.effectSource.clip != SoundManager.instance.swimlumerin))
-                {
-                    SoundManager.instance.effectSource.loop = true;
-                    SoundManager.instance.effectSource.clip = SoundManager.instance.swimlumerin;
-                    SoundManager.instance.effectSource.Play();
-                }
-            }
-        }
-
-        else
-        {
-            if (SoundManager.instance.effectSource.isPlaying &&
-                (SoundManager.instance.effectSource.clip == SoundManager.instance.boostlumerin ||
-                 SoundManager.instance.effectSource.clip == SoundManager.instance.swimlumerin))
-            {
-                SoundManager.instance.effectSource.Stop();
-            }
-
-            isBoosting = false;
-            animator.SetBool("swimboost", false);
-        }
-
-        if (boostBar != null)
-        {
-            boostBar.value = currentBoost;
-        }
-    }
-
     void Movement()
     {
-        float moveInput = Input.GetAxisRaw("Horizontal");
+        Vector2 moveInputVec = moveAction != null ? moveAction.action.ReadValue<Vector2>() : Vector2.zero;
+        float moveInput = moveInputVec.x;
 
         if (isInWater)
         {
             float speed = isBoosting ? moveSpeed * boostSpeedMultiplier : moveSpeed;
             float direction = isBoosting ? (spriteRenderer.flipX ? -1f : 1f) : moveInput;
 
-            rb.velocity = new Vector2(direction * speed, rb.velocity.y);
+            rb.linearVelocity = new Vector2(direction * speed, rb.linearVelocity.y);
             animator.SetBool("swim", moveInput != 0);
 
             if (direction != 0)
@@ -249,7 +209,7 @@ public class LumerinAbility : MonoBehaviour, AbilityManager
 
         else
         {
-            rb.velocity = new Vector2(moveInput * groundMoveSpeed, rb.velocity.y);
+            rb.linearVelocity = new Vector2(moveInput * groundMoveSpeed, rb.linearVelocity.y);
 
             if (moveInput != 0)
             {
@@ -281,16 +241,18 @@ public class LumerinAbility : MonoBehaviour, AbilityManager
     {
         if (isInWater)
         {
-            if (Input.GetKey(KeyCode.Space))
+            bool rising = jumpAction != null && jumpAction.action.ReadValue<float>() > 0f;
+
+            if (rising)
             {
                 isRising = true;
-                rb.velocity = new Vector2(rb.velocity.x, riseSpeed);
+                rb.linearVelocity = new Vector2(rb.linearVelocity.x, riseSpeed);
             }
 
             else
             {
                 isRising = false;
-                rb.velocity = new Vector2(rb.velocity.x, -sinkSpeed);
+                rb.linearVelocity = new Vector2(rb.linearVelocity.x, -sinkSpeed);
             }
 
             animator.SetBool("isRising", isRising);
@@ -317,6 +279,66 @@ public class LumerinAbility : MonoBehaviour, AbilityManager
         }
     }
 
+    void SwimBoost()
+    {
+        if (isInWater)
+        {
+            bool boosting = abilityAction != null && abilityAction.action.ReadValue<float>() > 0f;
+            if (boosting && currentBoost > 0f)
+            {
+                isBoosting = true;
+                currentBoost -= boostConsumptionRate * Time.deltaTime;
+                currentBoost = Mathf.Clamp(currentBoost, 0f, maxBoost);
+                animator.SetBool("swimboost", true);
+
+                if (!SoundManager.instance.effectSource.isPlaying || SoundManager.instance.effectSource.clip != SoundManager.instance.boostlumerin)
+                {
+                    SoundManager.instance.effectSource.loop = true;
+                    SoundManager.instance.effectSource.clip = SoundManager.instance.boostlumerin;
+                    SoundManager.instance.effectSource.Play();
+                }
+            }
+
+            else
+            {
+                if (isBoosting)
+                {
+                    if (SoundManager.instance.effectSource.isPlaying && SoundManager.instance.effectSource.clip == SoundManager.instance.boostlumerin)
+                    {
+                        SoundManager.instance.effectSource.Stop();
+                    }
+                }
+                isBoosting = false;
+                animator.SetBool("swimboost", false);
+
+                if (Mathf.Abs(rb.linearVelocity.x) > 0 && (!SoundManager.instance.effectSource.isPlaying || SoundManager.instance.effectSource.clip != SoundManager.instance.swimlumerin))
+                {
+                    SoundManager.instance.effectSource.loop = true;
+                    SoundManager.instance.effectSource.clip = SoundManager.instance.swimlumerin;
+                    SoundManager.instance.effectSource.Play();
+                }
+            }
+        }
+
+        else
+        {
+            if (SoundManager.instance.effectSource.isPlaying &&
+                (SoundManager.instance.effectSource.clip == SoundManager.instance.boostlumerin ||
+                 SoundManager.instance.effectSource.clip == SoundManager.instance.swimlumerin))
+            {
+                SoundManager.instance.effectSource.Stop();
+            }
+
+            isBoosting = false;
+            animator.SetBool("swimboost", false);
+        }
+
+        if (boostBar != null)
+        {
+            boostBar.value = currentBoost;
+        }
+    }
+
     void AutoJump()
     {
         if (isGrounded && !isInWater && !isAutoJumping)
@@ -328,7 +350,7 @@ public class LumerinAbility : MonoBehaviour, AbilityManager
     void AutoJumps()
     {
         isAutoJumping = true;
-        rb.velocity = new Vector2(rb.velocity.x, autoJumpForce);
+        rb.linearVelocity = new Vector2(rb.linearVelocity.x, autoJumpForce);
         animator.SetTrigger("jump");
 
         StartCoroutine(ResetAutoJump());

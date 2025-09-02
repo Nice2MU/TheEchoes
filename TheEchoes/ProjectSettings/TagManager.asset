@@ -4,12 +4,6 @@
 TagManager:
   serializedVersion: 3
   tags:
-  - Water
-  - Ramble
-  - Lumerin
-  - SlideArea
-  - HideZone
-  - GrabZone
   - T1
   - T2
   - T3
@@ -30,7 +24,26 @@ TagManager:
   - T18
   - T19
   - T20
+  - T21
+  - T22
+  - T23
+  - T24
+  - T25
+  - T26
+  - T27
+  - T28
+  - T29
+  - T30
+  - THide
+  - Grab
+  - Slide
   - Wall
+  - Ramble
+  - Lumerin
+  - HideZone
+  - Water
+  - GrabZone
+  - SlideArea
   layers:
   - Default
   - TransparentFX
@@ -38,10 +51,10 @@ TagManager:
   - Ground
   - Water
   - UI
-  - Enemy
-  - MorphTarget
-  - Destructible
   - Ceiling
+  - Morph
+  - 
+  - 
   - 
   - 
   - 
@@ -68,8 +81,8 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
-  - name: Player
-    uniqueID: 1197516517
+  - name: NoLight
+    uniqueID: 4094177115
     locked: 0
   m_RenderingLayers:
   - Default

@@ -1,17 +1,15 @@
 ﻿using UnityEngine;
-using System.IO;
 using System.Collections.Generic;
-using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine.SceneManagement;
 
 public class SaveManager : MonoBehaviour
 {
-    private string savePath;
     private List<ObjectSave> ObjectSave = new List<ObjectSave>();
+    private const string SaveKeyPrefix = "WebGL_GlobalSave";
+    private const int ChunkSize = 100000;
 
     private void Awake()
     {
-        savePath = Application.persistentDataPath + "/global_save.dat";
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
@@ -23,7 +21,7 @@ public class SaveManager : MonoBehaviour
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         ObjectSave.Clear();
-        ObjectSave.AddRange(FindObjectsOfType<ObjectSave>());
+        ObjectSave.AddRange(FindObjectsByType<ObjectSave>(FindObjectsSortMode.None));
         LoadScene();
     }
 
@@ -40,39 +38,45 @@ public class SaveManager : MonoBehaviour
         }
     }
 
+    [System.Serializable]
+    private class SaveWrapper
+    {
+        public List<string> keys = new List<string>();
+        public List<ObjectData> values = new List<ObjectData>();
+    }
+
     public void SaveScene()
     {
-        Dictionary<string, ObjectData> saveData = new Dictionary<string, ObjectData>();
+        SaveWrapper wrapper = new SaveWrapper();
 
         foreach (var obj in ObjectSave)
         {
-            saveData[obj.UniqueID] = obj.GetData();
+            wrapper.keys.Add(obj.UniqueID);
+            wrapper.values.Add(obj.GetData());
         }
 
-        using (FileStream stream = new FileStream(savePath, FileMode.Create))
-        {
-            BinaryFormatter formatter = new BinaryFormatter();
-            formatter.Serialize(stream, saveData);
-        }
+        string fullJson = JsonUtility.ToJson(wrapper);
+        SaveLargeData(SaveKeyPrefix, fullJson);
     }
 
     public void LoadScene()
     {
-        if (!File.Exists(savePath))
-        {
-            return;
-        }
+        string fullJson = LoadLargeData(SaveKeyPrefix);
+        if (string.IsNullOrEmpty(fullJson)) return;
 
-        using (FileStream stream = new FileStream(savePath, FileMode.Open))
+        SaveWrapper wrapper = JsonUtility.FromJson<SaveWrapper>(fullJson);
+
+        for (int i = 0; i < wrapper.keys.Count; i++)
         {
-            BinaryFormatter formatter = new BinaryFormatter();
-            var saveData = formatter.Deserialize(stream) as Dictionary<string, ObjectData>;
+            string id = wrapper.keys[i];
+            ObjectData data = wrapper.values[i];
 
             foreach (var obj in ObjectSave)
             {
-                if (saveData.TryGetValue(obj.UniqueID, out var data))
+                if (obj.UniqueID == id)
                 {
                     obj.LoadData(data);
+                    break;
                 }
             }
         }
@@ -80,14 +84,45 @@ public class SaveManager : MonoBehaviour
 
     public void DeleteSave()
     {
-        if (File.Exists(savePath))
+        if (PlayerPrefs.HasKey(SaveKeyPrefix + "_Chunks"))
         {
-            File.Delete(savePath);
+            int chunkCount = PlayerPrefs.GetInt(SaveKeyPrefix + "_Chunks");
+            for (int i = 0; i < chunkCount; i++)
+            {
+                PlayerPrefs.DeleteKey(SaveKeyPrefix + "_Chunk_" + i);
+            }
+            PlayerPrefs.DeleteKey(SaveKeyPrefix + "_Chunks");
         }
 
-        else
-        {
+        PlayerPrefs.Save();
+    }
 
+    private void SaveLargeData(string baseKey, string fullJson)
+    {
+        int totalChunks = Mathf.CeilToInt((float)fullJson.Length / ChunkSize);
+        PlayerPrefs.SetInt(baseKey + "_Chunks", totalChunks);
+
+        for (int i = 0; i < totalChunks; i++)
+        {
+            string chunk = fullJson.Substring(i * ChunkSize, Mathf.Min(ChunkSize, fullJson.Length - i * ChunkSize));
+            PlayerPrefs.SetString(baseKey + "_Chunk_" + i, chunk);
         }
+
+        PlayerPrefs.Save();
+    }
+
+    private string LoadLargeData(string baseKey)
+    {
+        if (!PlayerPrefs.HasKey(baseKey + "_Chunks")) return null;
+
+        int totalChunks = PlayerPrefs.GetInt(baseKey + "_Chunks");
+        string fullJson = "";
+
+        for (int i = 0; i < totalChunks; i++)
+        {
+            fullJson += PlayerPrefs.GetString(baseKey + "_Chunk_" + i);
+        }
+
+        return fullJson;
     }
 }

@@ -41,7 +41,7 @@ public class TutorialManager : MonoBehaviour
             }
         }
 
-        if (collision.CompareTag("HideZone"))
+        if (collision.CompareTag("THide"))
         {
             isInShowZone = false;
             currentGifIndex = -1;
