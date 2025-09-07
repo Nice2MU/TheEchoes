@@ -1,10 +1,13 @@
 fileFormatVersion: 2
-guid: cda21f7b6e931884080c15e5f09b6029
+guid: c712dc1cb30349047a3eb0c8d63020a8
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 7978695951013359255
-    second: Ground-cliff-1_0
+      213: -2944008791525679882
+    second: Ground-cliff-3_0
+  - first:
+      213: 1017713858216208278
+    second: Ground-cliff-3_1
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,7 +103,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Ground-cliff-1_0
+      name: Ground-cliff-3_0
       rect:
         serializedVersion: 2
         x: 0
@@ -115,8 +118,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 79eaffac1b50abe60800000000000000
-      internalID: 7978695951013359255
+      spriteID: 6fc1c752a97c427d0800000000000000
+      internalID: -2944008791525679882
       vertices: []
       indices: 
       edges: []
@@ -125,7 +128,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 70fc323d03312a64b933e25d5817582d
+    spriteID: aa6bcef82efa8084e91008287dab4554
     internalID: 0
     vertices: []
     indices: 
@@ -137,7 +140,7 @@ TextureImporter:
       - key: SpriteEditor.SliceSettings
         value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":1920.0,"y":1080.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":2,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
-      Ground-cliff-1_0: 7978695951013359255
+      Ground-cliff-3_0: -2944008791525679882
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

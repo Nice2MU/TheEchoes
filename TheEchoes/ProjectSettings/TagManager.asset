@@ -42,8 +42,6 @@ TagManager:
   - Lumerin
   - HideZone
   - Water
-  - GrabZone
-  - SlideArea
   layers:
   - Default
   - TransparentFX
