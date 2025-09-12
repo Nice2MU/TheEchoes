@@ -59,13 +59,18 @@ public class RambleAbility : MonoBehaviour, AbilityManager
             groundCheck = player.transform.Find("GroundCheck");
 
         audioSource = player.GetComponent<AudioSource>();
-
         if (audioSource == null)
             audioSource = player.AddComponent<AudioSource>();
 
         moveAction.action.Enable();
         jumpAction.action.Enable();
         abilityAction.action.Enable();
+
+        if (jumpChargeBar != null)
+        {
+            jumpChargeBar.value = 0f;
+            jumpChargeBar.gameObject.SetActive(false);
+        }
     }
 
     public void OnAbilityExit(GameObject playerObj)
@@ -82,6 +87,12 @@ public class RambleAbility : MonoBehaviour, AbilityManager
         moveAction.action.Disable();
         jumpAction.action.Disable();
         abilityAction.action.Disable();
+
+        if (jumpChargeBar != null)
+        {
+            jumpChargeBar.value = 0f;
+            jumpChargeBar.gameObject.SetActive(false);
+        }
     }
 
     public void PlayRevertAnimation(GameObject playerObj) { }
@@ -191,7 +202,6 @@ public class RambleAbility : MonoBehaviour, AbilityManager
         if (dashQueued)
         {
             dashDelayTimer -= Time.deltaTime;
-
             if (dashDelayTimer <= 0f)
             {
                 isDashing = true;
@@ -249,14 +259,36 @@ public class RambleAbility : MonoBehaviour, AbilityManager
 
     void JumpChargeUI()
     {
-        if (jumpChargeBar != null)
+        if (jumpChargeBar == null) return;
+
+        if (isChargingJump)
         {
-            jumpChargeBar.value = isChargingJump ? chargeTimer : 0f;
+            jumpChargeBar.gameObject.SetActive(true);
+            jumpChargeBar.value = chargeTimer;
+        }
+        else
+        {
+            jumpChargeBar.value = 0f;
+            jumpChargeBar.gameObject.SetActive(false);
         }
     }
 
     public bool IsDashing()
     {
         return isDashing;
+    }
+
+    public RambleSave BuildSave()
+    {
+        return new RambleSave();
+    }
+
+    public void ApplySave(RambleSave s)
+    {
+        if (jumpChargeBar != null)
+        {
+            jumpChargeBar.value = 0f;
+            jumpChargeBar.gameObject.SetActive(false);
+        }
     }
 }

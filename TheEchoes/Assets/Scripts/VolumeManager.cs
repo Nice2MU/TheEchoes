@@ -1,21 +1,29 @@
-using UnityEngine;
+﻿using UnityEngine;
+using UnityEngine.UI;
 
+[DisallowMultipleComponent]
 public class VolumeManager : MonoBehaviour
 {
     public static VolumeManager instance;
 
     [Header("Default Volume Levels")]
-    public float masterVolume = 1f;
-    public float sfxVolume = 1f;
-    public float musicVolume = 1f;
+    [Range(0f, 1f)] public float masterVolume = 1f;
+    [Range(0f, 1f)] public float sfxVolume = 1f;
+    [Range(0f, 1f)] public float musicVolume = 1f;
 
-    void Awake()
+    [Header("Optional UI Sliders (assign if you have them)")]
+    [SerializeField] private Slider masterVolumeSlider;
+    [SerializeField] private Slider sfxVolumeSlider;
+    [SerializeField] private Slider musicVolumeSlider;
+
+    private void Awake()
     {
         if (instance == null)
         {
             instance = this;
             DontDestroyOnLoad(gameObject);
             LoadVolumeSettings();
+            SyncSlidersFromValues();
         }
 
         else
@@ -24,11 +32,28 @@ public class VolumeManager : MonoBehaviour
         }
     }
 
+    private void OnEnable()
+    {
+        ApplyVolumeSettings();
+        AddSliderListeners();
+    }
+
+    private void OnDisable()
+    {
+        RemoveSliderListeners();
+        SaveVolumeSettings();
+    }
+
+    private void OnApplicationQuit()
+    {
+        SaveVolumeSettings();
+    }
+
     public void LoadVolumeSettings()
     {
-        masterVolume = PlayerPrefs.GetFloat("MasterVolume", 1f);
-        sfxVolume = PlayerPrefs.GetFloat("SFXVolume", 1f);
-        musicVolume = PlayerPrefs.GetFloat("MusicVolume", 1f);
+        masterVolume = PlayerPrefs.GetFloat("MasterVolume", masterVolume);
+        sfxVolume = PlayerPrefs.GetFloat("SFXVolume", sfxVolume);
+        musicVolume = PlayerPrefs.GetFloat("MusicVolume", musicVolume);
         ApplyVolumeSettings();
     }
 
@@ -37,46 +62,80 @@ public class VolumeManager : MonoBehaviour
         PlayerPrefs.SetFloat("MasterVolume", masterVolume);
         PlayerPrefs.SetFloat("SFXVolume", sfxVolume);
         PlayerPrefs.SetFloat("MusicVolume", musicVolume);
+        PlayerPrefs.Save();
     }
 
     public void ApplyVolumeSettings()
     {
         AudioListener.volume = masterVolume;
 
-        if (SoundManager.instance != null)
+        var sm = SoundManager.instance;
+        if (sm != null)
         {
-            if (SoundManager.instance.effectSource != null)
-                SoundManager.instance.effectSource.volume = sfxVolume;
-
-            if (SoundManager.instance.distanceSource != null)
-                SoundManager.instance.distanceSource.volume = sfxVolume;
-
-            if (SoundManager.instance.uiSource != null)
-                SoundManager.instance.uiSource.volume = sfxVolume;
-
-            if (SoundManager.instance.musicSource != null)
-                SoundManager.instance.musicSource.volume = musicVolume;
+            if (sm.effectSource != null) sm.effectSource.volume = sfxVolume;
+            if (sm.distanceSource != null) sm.distanceSource.volume = sfxVolume;
+            if (sm.uiSource != null) sm.uiSource.volume = sfxVolume;
+            if (sm.musicSource != null) sm.musicSource.volume = musicVolume;
         }
     }
 
     public void SetMasterVolume(float volume)
     {
-        masterVolume = volume;
+        masterVolume = Mathf.Clamp01(volume);
         ApplyVolumeSettings();
         SaveVolumeSettings();
+        SyncSlidersFromValues();
     }
 
     public void SetSFXVolume(float volume)
     {
-        sfxVolume = volume;
+        sfxVolume = Mathf.Clamp01(volume);
         ApplyVolumeSettings();
         SaveVolumeSettings();
+        SyncSlidersFromValues();
     }
 
     public void SetMusicVolume(float volume)
     {
-        musicVolume = volume;
+        musicVolume = Mathf.Clamp01(volume);
         ApplyVolumeSettings();
         SaveVolumeSettings();
+        SyncSlidersFromValues();
+    }
+
+    public void Refresh() => LoadVolumeSettings();
+
+    private void AddSliderListeners()
+    {
+        if (masterVolumeSlider != null)
+            masterVolumeSlider.onValueChanged.AddListener(SetMasterVolume);
+
+        if (sfxVolumeSlider != null)
+            sfxVolumeSlider.onValueChanged.AddListener(SetSFXVolume);
+
+        if (musicVolumeSlider != null)
+            musicVolumeSlider.onValueChanged.AddListener(SetMusicVolume);
+    }
+
+    private void RemoveSliderListeners()
+    {
+        if (masterVolumeSlider != null)
+            masterVolumeSlider.onValueChanged.RemoveListener(SetMasterVolume);
+
+        if (sfxVolumeSlider != null)
+            sfxVolumeSlider.onValueChanged.RemoveListener(SetSFXVolume);
+
+        if (musicVolumeSlider != null)
+            musicVolumeSlider.onValueChanged.RemoveListener(SetMusicVolume);
+    }
+
+    private void SyncSlidersFromValues()
+    {
+        if (masterVolumeSlider != null)
+            masterVolumeSlider.SetValueWithoutNotify(masterVolume);
+        if (sfxVolumeSlider != null)
+            sfxVolumeSlider.SetValueWithoutNotify(sfxVolume);
+        if (musicVolumeSlider != null)
+            musicVolumeSlider.SetValueWithoutNotify(musicVolume);
     }
 }

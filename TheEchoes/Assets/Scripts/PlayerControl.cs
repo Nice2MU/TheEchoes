@@ -124,7 +124,10 @@ public class PlayerControl : MonoBehaviour
         rb.angularDamping = originalDrag;
 
         if (jumpChargeBar != null)
-            jumpChargeBar.value = 0;
+        {
+            jumpChargeBar.value = 0f;
+            jumpChargeBar.gameObject.SetActive(false);
+        }
     }
 
     void Update()
@@ -314,7 +317,6 @@ public class PlayerControl : MonoBehaviour
         }
 
         if (!isSticking && !isGrounded && playerCollider.IsTouchingLayers(ceilingLayer) && stickCooldownTimer <= 0f)
-
         {
             isSticking = true;
             rb.linearVelocity = Vector2.zero;
@@ -357,6 +359,20 @@ public class PlayerControl : MonoBehaviour
             if (jumpAction.action.triggered)
             {
                 ReleaseVine();
+            }
+        }
+
+        if (jumpChargeBar != null)
+        {
+            bool showBar = (isGrounded && (jumpHeld || isChargingJump)) && !isSticking;
+
+            if (isSliding && isGrounded && isChargingJump) showBar = true;
+
+            jumpChargeBar.gameObject.SetActive(showBar);
+
+            if (!showBar)
+            {
+                jumpChargeBar.value = 0f;
             }
         }
 

@@ -1,128 +1,174 @@
-﻿using UnityEngine;
-using System.Collections.Generic;
+﻿using System;
+using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
 using UnityEngine.SceneManagement;
 
 public class SaveManager : MonoBehaviour
 {
-    private List<ObjectSave> ObjectSave = new List<ObjectSave>();
-    private const string SaveKeyPrefix = "WebGL_GlobalSave";
-    private const int ChunkSize = 100000;
+    [Header("Slot Widgets (1-4)")]
+    public SlotWidgets slot1, slot2, slot3, slot4;
+
+    [Header("UI Control")]
+    public GameObject mainMenuUI;
+    public GameObject gameUI;
+
+    [Header("Delete Mode")]
+    public Button deleteModeButton;
+    public TextMeshProUGUI deleteModeHint;
+
+    [Header("Initial Save Defaults")]
+    public Vector3 startPosition = Vector3.zero;
+
+    private bool deleteMode = false;
+
+    [Serializable]
+    public class SlotWidgets
+    {
+        [Range(1, 4)] public int slotIndex = 1;
+        public Button slotButton;
+        public TextMeshProUGUI titleText;
+        public TextMeshProUGUI subtitleText;
+        public RawImage previewImage;
+    }
 
     private void Awake()
     {
-        SceneManager.sceneLoaded += OnSceneLoaded;
-    }
-
-    private void OnDestroy()
-    {
-        SceneManager.sceneLoaded -= OnSceneLoaded;
-    }
-
-    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
-    {
-        ObjectSave.Clear();
-        ObjectSave.AddRange(FindObjectsByType<ObjectSave>(FindObjectsSortMode.None));
-        LoadScene();
-    }
-
-    private void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (deleteModeButton)
         {
-            SaveScene();
-        }
-
-        if (Input.GetKeyDown(KeyCode.Delete))
-        {
-            DeleteSave();
+            deleteModeButton.onClick.RemoveAllListeners();
+            deleteModeButton.onClick.AddListener(ToggleDeleteMode);
         }
     }
 
-    [System.Serializable]
-    private class SaveWrapper
+    private void OnEnable()
     {
-        public List<string> keys = new List<string>();
-        public List<ObjectData> values = new List<ObjectData>();
+        WireSlot(slot1); WireSlot(slot2); WireSlot(slot3); WireSlot(slot4);
+        RefreshAll();
+        UpdateDeleteHint();
     }
 
-    public void SaveScene()
+    private void WireSlot(SlotWidgets w)
     {
-        SaveWrapper wrapper = new SaveWrapper();
+        if (w?.slotButton == null) return;
+        w.slotButton.onClick.RemoveAllListeners();
+        w.slotButton.onClick.AddListener(() => OnClickSlot(w.slotIndex));
+    }
 
-        foreach (var obj in ObjectSave)
+    public void RefreshAll()
+    {
+        Refresh(slot1); Refresh(slot2); Refresh(slot3); Refresh(slot4);
+    }
+
+    private void Refresh(SlotWidgets w)
+    {
+        if (w == null) return;
+
+        if (!SaveDataSystem.Has(w.slotIndex))
         {
-            wrapper.keys.Add(obj.UniqueID);
-            wrapper.values.Add(obj.GetData());
+            if (w.titleText) w.titleText.text = $"Slot {w.slotIndex} — Empty";
+            if (w.subtitleText) w.subtitleText.text = deleteMode ? "Tap to delete (empty)" : "Start a new game";
+            if (w.previewImage) w.previewImage.texture = null;
+            return;
         }
 
-        string fullJson = JsonUtility.ToJson(wrapper);
-        SaveLargeData(SaveKeyPrefix, fullJson);
-    }
-
-    public void LoadScene()
-    {
-        string fullJson = LoadLargeData(SaveKeyPrefix);
-        if (string.IsNullOrEmpty(fullJson)) return;
-
-        SaveWrapper wrapper = JsonUtility.FromJson<SaveWrapper>(fullJson);
-
-        for (int i = 0; i < wrapper.keys.Count; i++)
+        var d = SaveDataSystem.Load(w.slotIndex);
+        if (d == null)
         {
-            string id = wrapper.keys[i];
-            ObjectData data = wrapper.values[i];
+            if (w.titleText) w.titleText.text = $"Slot {w.slotIndex} — (invalid)";
+            if (w.subtitleText) w.subtitleText.text = "Corrupted save";
+            if (w.previewImage) w.previewImage.texture = null;
+            return;
+        }
 
-            foreach (var obj in ObjectSave)
+        if (w.titleText) w.titleText.text = $"Slot {w.slotIndex} — {d.scene}";
+
+        if (w.subtitleText)
+        {
+            string savedLocal = "-";
+            try { savedLocal = DateTime.Parse(d.lastSavedIso).ToLocalTime().ToString("yyyy-MM-dd HH:mm"); } catch { }
+            var t = TimeSpan.FromSeconds(Math.Max(0, d.totalPlaySeconds));
+            var info = $"Saved {savedLocal} • Playtime {t:hh\\:mm\\:ss}";
+            w.subtitleText.text = deleteMode ? $"{info}  (tap to delete)" : info;
+        }
+
+        if (w.previewImage)
+        {
+            if (!string.IsNullOrEmpty(d.previewImageBase64))
             {
-                if (obj.UniqueID == id)
+                try
                 {
-                    obj.LoadData(data);
-                    break;
+                    byte[] bytes = Convert.FromBase64String(d.previewImageBase64);
+                    var tex = new Texture2D(2, 2);
+                    tex.LoadImage(bytes);
+                    w.previewImage.texture = tex;
                 }
+                catch { w.previewImage.texture = null; }
             }
+
+            else w.previewImage.texture = null;
         }
     }
 
-    public void DeleteSave()
+    private void OnClickSlot(int slot)
     {
-        if (PlayerPrefs.HasKey(SaveKeyPrefix + "_Chunks"))
+        if (deleteMode)
         {
-            int chunkCount = PlayerPrefs.GetInt(SaveKeyPrefix + "_Chunks");
-            for (int i = 0; i < chunkCount; i++)
+            SaveDataSystem.Delete(slot);
+            if (GlobalGame.CurrentSlot == slot) GlobalGame.CurrentSlot = 1;
+            ToggleDeleteMode();
+            RefreshAll();
+            return;
+        }
+
+        GlobalGame.CurrentSlot = slot;
+
+        if (!SaveDataSystem.Has(slot))
+        {
+            var data = new SaveData
             {
-                PlayerPrefs.DeleteKey(SaveKeyPrefix + "_Chunk_" + i);
-            }
-            PlayerPrefs.DeleteKey(SaveKeyPrefix + "_Chunks");
+                scene = SceneManager.GetActiveScene().name,
+                posX = startPosition.x,
+                posY = startPosition.y,
+                posZ = startPosition.z,
+                lastSavedIso = DateTime.UtcNow.ToString("o"),
+                totalPlaySeconds = 0,
+                previewImageBase64 = null,
+                health = new HealthSave
+                {
+                    hits = 5,
+                    checkpointX = startPosition.x,
+                    checkpointY = startPosition.y,
+                    checkpointZ = startPosition.z
+                }
+            };
+
+            SaveDataSystem.Save(slot, data);
+            PlayerHealth.lastCheckpointPosition = startPosition;
+            RefreshAll();
         }
 
-        PlayerPrefs.Save();
+        var gsm = FindObjectOfType<GameSaveManager>();
+        if (gsm != null) gsm.ApplyFromCurrentSlot(true);
+
+        if (mainMenuUI) mainMenuUI.SetActive(false);
+        if (gameUI) gameUI.SetActive(true);
     }
 
-    private void SaveLargeData(string baseKey, string fullJson)
+    public void ToggleDeleteMode()
     {
-        int totalChunks = Mathf.CeilToInt((float)fullJson.Length / ChunkSize);
-        PlayerPrefs.SetInt(baseKey + "_Chunks", totalChunks);
-
-        for (int i = 0; i < totalChunks; i++)
-        {
-            string chunk = fullJson.Substring(i * ChunkSize, Mathf.Min(ChunkSize, fullJson.Length - i * ChunkSize));
-            PlayerPrefs.SetString(baseKey + "_Chunk_" + i, chunk);
-        }
-
-        PlayerPrefs.Save();
+        deleteMode = !deleteMode;
+        UpdateDeleteHint();
+        RefreshAll();
     }
 
-    private string LoadLargeData(string baseKey)
+    private void UpdateDeleteHint()
     {
-        if (!PlayerPrefs.HasKey(baseKey + "_Chunks")) return null;
-
-        int totalChunks = PlayerPrefs.GetInt(baseKey + "_Chunks");
-        string fullJson = "";
-
-        for (int i = 0; i < totalChunks; i++)
+        if (deleteModeHint) deleteModeHint.text = deleteMode ? "Delete Mode: Tap a slot to delete" : "";
+        if (deleteModeButton)
         {
-            fullJson += PlayerPrefs.GetString(baseKey + "_Chunk_" + i);
+            var txt = deleteModeButton.GetComponentInChildren<TextMeshProUGUI>();
+            if (txt) txt.text = deleteMode ? "Exit Delete" : "Delete";
         }
-
-        return fullJson;
     }
 }

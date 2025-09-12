@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
 
 public class TutorialManager : MonoBehaviour
@@ -8,6 +9,8 @@ public class TutorialManager : MonoBehaviour
     {
         public string tag;
         public int gifIndex;
+
+        public float autoHideDelay = 5f;
     }
 
     [Header("UI Button")]
@@ -23,6 +26,11 @@ public class TutorialManager : MonoBehaviour
     private int currentGifIndex = -1;
     private bool isInShowZone = false;
 
+    private readonly HashSet<string> autoShownTags = new HashSet<string>();
+
+    private Coroutine autoHideRoutine;
+    private float currentAutoHideDelay = 0f;
+
     private void OnTriggerEnter2D(Collider2D collision)
     {
         foreach (var zone in tutorialZones)
@@ -31,12 +39,19 @@ public class TutorialManager : MonoBehaviour
             {
                 isInShowZone = true;
                 currentGifIndex = zone.gifIndex;
+                currentAutoHideDelay = zone.autoHideDelay;
 
-                if (!tutorialPanel.activeSelf)
+                if (!autoShownTags.Contains(zone.tag))
                 {
-                    tutorialButton.SetActive(true);
+                    AutoShowOnce(zone.gifIndex, zone.autoHideDelay);
+                    autoShownTags.Add(zone.tag);
                 }
 
+                else
+                {
+                    if (tutorialPanel != null && !tutorialPanel.activeSelf && tutorialButton != null)
+                        tutorialButton.SetActive(true);
+                }
                 return;
             }
         }
@@ -45,7 +60,12 @@ public class TutorialManager : MonoBehaviour
         {
             isInShowZone = false;
             currentGifIndex = -1;
-            tutorialButton.SetActive(false);
+
+            CancelAutoHideIfAny();
+            ForceHideAll();
+
+            if (tutorialButton != null)
+                tutorialButton.SetActive(false);
         }
     }
 
@@ -53,29 +73,79 @@ public class TutorialManager : MonoBehaviour
     {
         if (currentGifIndex >= 0 && currentGifIndex < gifObjects.Length)
         {
-            tutorialPanel.SetActive(true);
-            gifObjects[currentGifIndex].SetActive(true);
-            tutorialButton.SetActive(false);
-        }
+            ShowGif(currentGifIndex);
+            if (tutorialButton != null) tutorialButton.SetActive(false);
 
-        else
-        {
-
+            CancelAutoHideIfAny();
         }
     }
 
     public void HideTutorial()
     {
-        tutorialPanel.SetActive(false);
+        ForceHideAll();
 
-        foreach (GameObject gif in gifObjects)
-        {
-            gif.SetActive(false);
-        }
-
-        if (isInShowZone)
+        if (isInShowZone && tutorialButton != null)
         {
             tutorialButton.SetActive(true);
         }
+    }
+
+    private void AutoShowOnce(int gifIndex, float delay)
+    {
+        CancelAutoHideIfAny();
+        ShowGif(gifIndex);
+
+        RestartAutoHide(delay);
+    }
+
+    private void ShowGif(int index)
+    {
+        if (tutorialPanel != null) tutorialPanel.SetActive(true);
+
+        for (int i = 0; i < gifObjects.Length; i++)
+        {
+            if (gifObjects[i] != null) gifObjects[i].SetActive(false);
+        }
+
+        if (index >= 0 && index < gifObjects.Length && gifObjects[index] != null)
+        {
+            gifObjects[index].SetActive(true);
+        }
+
+        if (tutorialButton != null) tutorialButton.SetActive(false);
+    }
+
+    private void ForceHideAll()
+    {
+        if (tutorialPanel != null) tutorialPanel.SetActive(false);
+
+        for (int i = 0; i < gifObjects.Length; i++)
+        {
+            if (gifObjects[i] != null) gifObjects[i].SetActive(false);
+        }
+    }
+
+    private void RestartAutoHide(float delay)
+    {
+        if (delay <= 0f) return;
+
+        CancelAutoHideIfAny();
+        autoHideRoutine = StartCoroutine(AutoHideAfterDelay(delay));
+    }
+
+    private void CancelAutoHideIfAny()
+    {
+        if (autoHideRoutine != null)
+        {
+            StopCoroutine(autoHideRoutine);
+            autoHideRoutine = null;
+        }
+    }
+
+    private IEnumerator AutoHideAfterDelay(float seconds)
+    {
+        yield return new WaitForSeconds(seconds);
+        HideTutorial();
+        autoHideRoutine = null;
     }
 }

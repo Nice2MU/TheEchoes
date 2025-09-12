@@ -41,7 +41,8 @@ TagManager:
   - Ramble
   - Lumerin
   - HideZone
-  - Water
+  - Kill
+  - Damage
   layers:
   - Default
   - TransparentFX
@@ -81,6 +82,9 @@ TagManager:
     locked: 0
   - name: NoLight
     uniqueID: 4094177115
+    locked: 0
+  - name: UI
+    uniqueID: 362279369
     locked: 0
   m_RenderingLayers:
   - Default

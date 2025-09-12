@@ -12,7 +12,6 @@ public class HiddenManager : MonoBehaviour
     public UnityEvent onTriggerEnter;
     public UnityEvent onTriggerExit;
 
-    [Header("Fade Settings")]
     public SpriteRenderer spriteRenderer;
     public float fadeDuration = 0.5f;
 

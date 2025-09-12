@@ -55,6 +55,105 @@ public class ConsumeControl : MonoBehaviour
     private float lastMorphTimeLeft;
     private bool hasStoredMorph = false;
 
+    [System.Serializable]
+    public class ConsumeSnapshot
+    {
+        public string controllerName;
+        public string morphTag;
+        public float timeLeft;
+        public bool isMorphing;
+        public bool hasStored;
+    }
+
+    public ConsumeSnapshot BuildSnapshot()
+    {
+        var snap = new ConsumeSnapshot();
+
+        RuntimeAnimatorController ctrl = isMorphing
+            ? (animator != null ? animator.runtimeAnimatorController : null)
+            : (lastMorphData != null ? lastMorphData.animatorController : null);
+
+        snap.controllerName = ctrl != null ? ctrl.name : "";
+        snap.morphTag = lastMorphData != null ? lastMorphData.tag : "";
+        snap.isMorphing = isMorphing;
+        snap.hasStored = hasStoredMorph;
+
+        float remain = 0f;
+        if (isMorphing && pawerBar != null) remain = pawerBar.value;
+        else if (!isMorphing && hasStoredMorph) remain = lastMorphTimeLeft;
+
+        snap.timeLeft = remain;
+        return snap;
+    }
+
+    public void ApplySnapshot(ConsumeSnapshot s)
+    {
+        if (s == null) return;
+
+        MorphData data = null;
+        if (!string.IsNullOrEmpty(s.controllerName))
+            data = morphMappings.Find(m => m.animatorController != null && m.animatorController.name == s.controllerName);
+        if (data == null && !string.IsNullOrEmpty(s.morphTag))
+            data = morphMappings.Find(m => m.tag == s.morphTag);
+
+        lastMorphData = data;
+        lastMorphTimeLeft = s.timeLeft;
+        hasStoredMorph = s.hasStored;
+
+        if (s.isMorphing && data != null && data.animatorController != null)
+        {
+            currentMorphController = data.animatorController;
+
+            if (data.abilityPrefab != null)
+            {
+                currentAbilityInstance = Instantiate(data.abilityPrefab);
+                foreach (AbilityManager ability in currentAbilityInstance.GetComponents<AbilityManager>())
+                {
+                    ability.OnAbilityEnter(gameObject);
+                }
+            }
+
+            if (animator != null)
+            {
+                animator.runtimeAnimatorController = currentMorphController;
+                animator.Rebind();
+                animator.Update(0f);
+            }
+
+            if (pawerBar != null)
+            {
+                pawerBar.maxValue = morphDuration;
+                pawerBar.value = Mathf.Clamp(s.timeLeft, 0f, morphDuration);
+            }
+
+            if (morphTimerCoroutine != null)
+            {
+                StopCoroutine(morphTimerCoroutine);
+                morphTimerCoroutine = null;
+            }
+            float start = (pawerBar != null ? pawerBar.value : Mathf.Clamp(s.timeLeft, 0f, morphDuration));
+            morphTimerCoroutine = StartCoroutine(MorphCountdown(start));
+
+            isMorphing = true;
+            isConsuming = false;
+
+            if (morphIcon != null && data.icon != null)
+                morphIcon.sprite = data.icon;
+        }
+
+        else
+        {
+            isMorphing = false;
+            if (animator != null && originalController != null)
+            {
+                animator.runtimeAnimatorController = originalController;
+                animator.Rebind();
+                animator.Update(0f);
+            }
+            UpdateMorphIcon();
+        }
+    }
+
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -67,7 +166,6 @@ public class ConsumeControl : MonoBehaviour
             pawerBar.value = 0f;
         }
 
-        LoadMorphData();
         UpdateMorphIcon();
     }
 
@@ -137,7 +235,7 @@ public class ConsumeControl : MonoBehaviour
             {
                 bool newFacingRight = moveInput.x > 0 || rb.linearVelocity.x > 0;
 
-            if (newFacingRight != isFacingRight)
+                if (newFacingRight != isFacingRight)
                 {
                     isFacingRight = newFacingRight;
                     playerSprite.flipX = !isFacingRight;
@@ -242,8 +340,6 @@ public class ConsumeControl : MonoBehaviour
         morphTimerCoroutine = StartCoroutine(MorphCountdown(morphDuration));
         isConsuming = false;
 
-        SaveMorphData(currentMorphController, morphDuration);
-
         if (morphIcon != null && lastMorphData != null)
         {
             morphIcon.sprite = lastMorphData.icon;
@@ -326,19 +422,14 @@ public class ConsumeControl : MonoBehaviour
         }
 
         UpdateMorphIcon();
-        ClearSavedMorphData();
+
     }
 
     private void UpdateMorphIcon()
     {
         if (morphIcon == null) return;
 
-        if (isMorphing && lastMorphData != null)
-        {
-            morphIcon.sprite = lastMorphData.icon;
-        }
-
-        else if (hasStoredMorph && lastMorphData != null)
+        if ((isMorphing && lastMorphData != null) || (hasStoredMorph && lastMorphData != null))
         {
             morphIcon.sprite = lastMorphData.icon;
         }
@@ -429,36 +520,5 @@ public class ConsumeControl : MonoBehaviour
 
         Gizmos.color = Color.blue;
         Gizmos.DrawWireSphere(transform.position, 0.2f);
-    }
-
-    private void SaveMorphData(RuntimeAnimatorController controller, float timeLeft)
-    {
-        if (controller != null)
-        {
-            PlayerPrefs.SetString("LastMorphTag", controller.name);
-            PlayerPrefs.SetFloat("LastMorphTimeLeft", timeLeft);
-            PlayerPrefs.Save();
-        }
-    }
-
-    private void LoadMorphData()
-    {
-        string lastMorphTag = PlayerPrefs.GetString("LastMorphTag", "");
-        if (!string.IsNullOrEmpty(lastMorphTag))
-        {
-            MorphData data = morphMappings.Find(m => m.animatorController.name == lastMorphTag);
-            if (data != null)
-            {
-                lastMorphData = data;
-                lastMorphTimeLeft = PlayerPrefs.GetFloat("LastMorphTimeLeft", morphDuration);
-            }
-        }
-    }
-
-    private void ClearSavedMorphData()
-    {
-        PlayerPrefs.DeleteKey("LastMorphTag");
-        PlayerPrefs.DeleteKey("LastMorphTimeLeft");
-        PlayerPrefs.Save();
     }
 }

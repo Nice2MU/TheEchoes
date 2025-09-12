@@ -1,39 +1,43 @@
 ﻿using UnityEngine;
 
+[DisallowMultipleComponent]
 public class ObjectReset : MonoBehaviour
 {
     private Vector3 initialPosition;
     private Quaternion initialRotation;
-    private Rigidbody2D rb;
+    private Vector3 initialScale;
 
-    void Start()
+    private Rigidbody2D rb2d;
+    private Rigidbody rb3d;
+
+    void Awake()
     {
         initialPosition = transform.position;
         initialRotation = transform.rotation;
-        rb = GetComponent<Rigidbody2D>();
-    }
+        initialScale = transform.localScale;
 
-    public void ResetPosition()
-    {
-        transform.position = initialPosition;
-        transform.rotation = initialRotation;
-
-        if (rb != null)
-        {
-            rb.linearVelocity = Vector2.zero;
-            rb.angularVelocity = 0f;
-            rb.gravityScale = 1f;
-            rb.bodyType = RigidbodyType2D.Kinematic;
-        }
+        rb2d = GetComponent<Rigidbody2D>();
+        rb3d = GetComponent<Rigidbody>();
     }
 
     public void ResetState()
     {
-        if (!gameObject.activeSelf)
+        if (!gameObject.activeSelf) gameObject.SetActive(true);
+
+        transform.position = initialPosition;
+        transform.rotation = initialRotation;
+        transform.localScale = initialScale;
+
+        if (rb2d)
         {
-            gameObject.SetActive(true);
+            rb2d.velocity = Vector2.zero;
+            rb2d.angularVelocity = 0f;
         }
 
-        ResetPosition();
+        if (rb3d)
+        {
+            rb3d.velocity = Vector3.zero;
+            rb3d.angularVelocity = Vector3.zero;
+        }
     }
 }

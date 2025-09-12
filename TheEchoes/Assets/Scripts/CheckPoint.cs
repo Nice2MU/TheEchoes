@@ -1,20 +1,37 @@
 ﻿using UnityEngine;
 
-public class Checkpoint : MonoBehaviour
+[RequireComponent(typeof(Collider2D))]
+public class CheckPoint : MonoBehaviour
 {
-    public Vector3 respawnPosition;
+    [Header("Checkpoint Settings")]
+    public bool useOverridePosition = false;
+    public Vector3 overridePosition;
+
+    public AudioSource sfx;
+
+    private void Reset()
+    {
+        var col = GetComponent<Collider2D>();
+        col.isTrigger = true;
+    }
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.CompareTag("Player"))
+        if (!other.CompareTag("Player")) return;
+
+        Vector3 cp = useOverridePosition ? overridePosition : transform.position;
+        PlayerHealth.lastCheckpointPosition = cp;
+
+        if (sfx != null)
         {
-            DeathManager.lastCheckpointPosition = respawnPosition;
+            sfx.Play();
         }
     }
 
-    private void OnDrawGizmosSelected()
+    private void OnDrawGizmos()
     {
         Gizmos.color = Color.green;
-        Gizmos.DrawSphere(respawnPosition, 0.3f);
+        Vector3 pos = useOverridePosition ? overridePosition : transform.position;
+        Gizmos.DrawSphere(pos, 0.3f);
     }
 }
