@@ -41,6 +41,49 @@ public class RambleAbility : MonoBehaviour, AbilityManager
     private AudioSource audioSource;
     private bool hasPlayedFall = false;
 
+    private bool ControlsLocked()
+    {
+        bool dialogueLock = DialogueManager.Instance != null && DialogueManager.Instance.isDialogueActive;
+        bool tutorialLock = TutorialManager.IsTutorialLockActive;
+        bool uiLock = UIManager.IsUiMovementLocked;
+        return dialogueLock || tutorialLock || uiLock;
+    }
+
+    private void HaltMotionAndFacing()
+    {
+        if (rb != null)
+        {
+            var v = rb.linearVelocity;
+            v.x = 0f;
+            rb.linearVelocity = v;
+        }
+
+        isDashing = false;
+        dashQueued = false;
+        isChargingJump = false;
+        chargeTimer = 0f;
+
+        if (dashManager != null) dashManager.Dash(false);
+
+        if (animator != null)
+        {
+            animator.SetBool("walk", false);
+            animator.SetBool("roll", false);
+            animator.SetBool("chargeJump", false);
+        }
+
+        if (audioSource != null && audioSource.isPlaying)
+        {
+            audioSource.Stop();
+        }
+
+        if (jumpChargeBar != null)
+        {
+            jumpChargeBar.value = 0f;
+            jumpChargeBar.gameObject.SetActive(false);
+        }
+    }
+
     public void OnAbilityEnter(GameObject playerObj)
     {
         player = playerObj;
@@ -101,6 +144,12 @@ public class RambleAbility : MonoBehaviour, AbilityManager
     {
         if (player == null || rb == null) return;
 
+        if (ControlsLocked())
+        {
+            HaltMotionAndFacing();
+            return;
+        }
+
         GroundCheck();
         Movement();
         Dash();
@@ -143,7 +192,10 @@ public class RambleAbility : MonoBehaviour, AbilityManager
 
         if (moveX != 0)
         {
-            spriteRenderer.flipX = moveX < 0;
+            if (!ControlsLocked())
+            {
+                spriteRenderer.flipX = moveX < 0;
+            }
 
             if (!isDashing && isGrounded)
             {
@@ -173,6 +225,17 @@ public class RambleAbility : MonoBehaviour, AbilityManager
 
     void Dash()
     {
+        if (ControlsLocked())
+        {
+            isDashing = false;
+            dashQueued = false;
+            animator.SetBool("roll", false);
+            if (audioSource.isPlaying && audioSource.clip == SoundManager.instance.rollramble)
+                audioSource.Stop();
+            if (dashManager != null) dashManager.Dash(false);
+            return;
+        }
+
         if (abilityAction.action.triggered && !dashQueued)
         {
             isDashing = false;
@@ -233,6 +296,13 @@ public class RambleAbility : MonoBehaviour, AbilityManager
 
     void ChargeJump()
     {
+        if (ControlsLocked())
+        {
+            isChargingJump = false;
+            chargeTimer = 0f;
+            return;
+        }
+
         if (jumpAction.action.IsPressed() && isGrounded)
         {
             isChargingJump = true;
@@ -266,6 +336,7 @@ public class RambleAbility : MonoBehaviour, AbilityManager
             jumpChargeBar.gameObject.SetActive(true);
             jumpChargeBar.value = chargeTimer;
         }
+
         else
         {
             jumpChargeBar.value = 0f;
@@ -273,15 +344,9 @@ public class RambleAbility : MonoBehaviour, AbilityManager
         }
     }
 
-    public bool IsDashing()
-    {
-        return isDashing;
-    }
+    public bool IsDashing() => isDashing;
 
-    public RambleSave BuildSave()
-    {
-        return new RambleSave();
-    }
+    public RambleSave BuildSave() => new RambleSave();
 
     public void ApplySave(RambleSave s)
     {

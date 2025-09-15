@@ -53,6 +53,11 @@ public class LumerinAbility : MonoBehaviour, AbilityManager
 
     private const float BOOST_EPSILON = 0.01f;
 
+    private bool ControlsLocked()
+        => (DialogueManager.Instance != null && DialogueManager.Instance.isDialogueActive)
+           || TutorialManager.IsTutorialLockActive
+           || UIManager.IsUiMovementLocked;
+
     private void Awake()
     {
         ForceHideBoostBarAtBoot();
@@ -63,7 +68,6 @@ public class LumerinAbility : MonoBehaviour, AbilityManager
         moveAction?.action.Enable();
         jumpAction?.action.Enable();
         abilityAction?.action.Enable();
-
         ForceHideBoostBarAtBoot();
     }
 
@@ -102,7 +106,6 @@ public class LumerinAbility : MonoBehaviour, AbilityManager
             groundCheck = player.transform.Find("GroundCheck");
 
         isActiveAbility = true;
-
         currentBoost = maxBoost;
 
         UpdateBoostBarUI();
@@ -147,10 +150,13 @@ public class LumerinAbility : MonoBehaviour, AbilityManager
 
         GroundCheck();
         WaterCheck();
+
         SwimBoost();
         Movement();
         DiveRise();
+
         AutoJump();
+
         BoostRecovery();
     }
 
@@ -171,43 +177,43 @@ public class LumerinAbility : MonoBehaviour, AbilityManager
 
     void WaterCheck()
     {
-        if (!isGrounded)
+        if (!isGrounded && groundCheck != null)
         {
-            if (groundCheck != null)
+            isInWater = Physics2D.OverlapCircle(groundCheck.position, 0.1f, waterLayer);
+            animator.SetBool("swim", isInWater);
+
+            if (isInWater && !wasInWater)
             {
-                isInWater = Physics2D.OverlapCircle(groundCheck.position, 0.1f, waterLayer);
-                animator.SetBool("swim", isInWater);
+                SoundManager.instance.PlaySFX("Drown");
+                wasInWater = true;
+            }
 
-                if (isInWater && !wasInWater)
-                {
-                    SoundManager.instance.PlaySFX("Drown");
-                    wasInWater = true;
-                }
-
-                else if (!isInWater)
-                {
-                    wasInWater = false;
-                }
+            else if (!isInWater)
+            {
+                wasInWater = false;
             }
         }
     }
 
     void Movement()
     {
-        Vector2 moveInputVec = moveAction != null ? moveAction.action.ReadValue<Vector2>() : Vector2.zero;
-        float moveInput = moveInputVec.x;
+        float moveInput = ControlsLocked() ? 0f :
+            (moveAction != null ? moveAction.action.ReadValue<Vector2>().x : 0f);
 
         if (isInWater)
         {
             float speed = isBoosting ? moveSpeed * boostSpeedMultiplier : moveSpeed;
-            float direction = isBoosting ? (spriteRenderer.flipX ? -1f : 1f) : moveInput;
+            float horizontal = isBoosting
+                ? (spriteRenderer.flipX ? -1f : 1f)
+                : moveInput;
 
-            rb.linearVelocity = new Vector2(direction * speed, rb.linearVelocity.y);
-            animator.SetBool("swim", moveInput != 0);
+            rb.linearVelocity = new Vector2(horizontal * speed, rb.linearVelocity.y);
+            animator.SetBool("swim", Mathf.Abs(horizontal) > 0.001f);
 
-            if (direction != 0) spriteRenderer.flipX = direction < 0;
+            if (horizontal != 0 && !ControlsLocked())
+                spriteRenderer.flipX = horizontal < 0;
 
-            if ((moveInput != 0 || isRising || !isGrounded) && !isPlayingSwimSound)
+            if ((horizontal != 0 || isRising || !isGrounded) && !isPlayingSwimSound)
             {
                 SoundManager.instance.effectSource.loop = true;
                 SoundManager.instance.effectSource.clip = SoundManager.instance.swimlumerin;
@@ -215,7 +221,7 @@ public class LumerinAbility : MonoBehaviour, AbilityManager
                 isPlayingSwimSound = true;
             }
 
-            else if (moveInput == 0 && !isRising && isGrounded && isPlayingSwimSound)
+            else if (horizontal == 0 && !isRising && isGrounded && isPlayingSwimSound)
             {
                 SoundManager.instance.effectSource.Stop();
                 isPlayingSwimSound = false;
@@ -226,7 +232,8 @@ public class LumerinAbility : MonoBehaviour, AbilityManager
         {
             rb.linearVelocity = new Vector2(moveInput * groundMoveSpeed, rb.linearVelocity.y);
 
-            if (moveInput != 0) spriteRenderer.flipX = moveInput < 0;
+            if (moveInput != 0 && !ControlsLocked())
+                spriteRenderer.flipX = moveInput < 0;
 
             animator.SetFloat("Speed", Mathf.Abs(moveInput));
             animator.SetBool("swim", false);
@@ -253,7 +260,7 @@ public class LumerinAbility : MonoBehaviour, AbilityManager
     {
         if (isInWater)
         {
-            bool rising = jumpAction != null && jumpAction.action.ReadValue<float>() > 0f;
+            bool rising = !ControlsLocked() && jumpAction != null && jumpAction.action.ReadValue<float>() > 0f;
 
             if (rising)
             {
@@ -295,8 +302,9 @@ public class LumerinAbility : MonoBehaviour, AbilityManager
     {
         if (isInWater)
         {
-            bool boosting = abilityAction != null && abilityAction.action.ReadValue<float>() > 0f;
-            if (boosting && currentBoost > 0f)
+            bool boostingInput = !ControlsLocked() && abilityAction != null && abilityAction.action.ReadValue<float>() > 0f;
+
+            if (boostingInput && currentBoost > 0f)
             {
                 isBoosting = true;
                 currentBoost -= boostConsumptionRate * Time.deltaTime;
@@ -395,10 +403,7 @@ public class LumerinAbility : MonoBehaviour, AbilityManager
             boostBar.gameObject.SetActive(shouldShow);
     }
 
-    public bool IsSinking()
-    {
-        return !isRising;
-    }
+    public bool IsSinking() => !isRising;
 
     public float GetCurrentBoost() => currentBoost;
 

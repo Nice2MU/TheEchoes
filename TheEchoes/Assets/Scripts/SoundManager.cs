@@ -15,8 +15,6 @@ public class SoundManager : MonoBehaviour
     public AudioClip point;
     public AudioClip click;
     public AudioClip typing;
-    public AudioClip locks;
-    public AudioClip unlock;
     public AudioClip save;
     public AudioClip delete;
 
@@ -91,10 +89,6 @@ public class SoundManager : MonoBehaviour
             case "Click": uiSource.PlayOneShot(click); break;
 
             case "Typing": uiSource.PlayOneShot(typing); break;
-
-            case "Lock": uiSource.PlayOneShot(locks); break;
-
-            case "Unlock": uiSource.PlayOneShot(unlock); break;
 
             case "Save": uiSource.PlayOneShot(save); break;
 
