@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.SceneManagement;
+using System.Globalization;
 
 public class SaveManager : MonoBehaviour
 {
@@ -71,7 +72,7 @@ public class SaveManager : MonoBehaviour
             if (w.previewImage) w.previewImage.texture = null;
             return;
         }
-
+        
         var d = SaveDataSystem.Load(w.slotIndex);
         if (d == null)
         {
@@ -81,12 +82,22 @@ public class SaveManager : MonoBehaviour
             return;
         }
 
-        if (w.titleText) w.titleText.text = $"Slot {w.slotIndex} — {d.scene}";
+        if (w.titleText) w.titleText.text = $"Slot {w.slotIndex} — Save Data";
 
         if (w.subtitleText)
         {
             string savedLocal = "-";
-            try { savedLocal = DateTime.Parse(d.lastSavedIso).ToLocalTime().ToString("yyyy-MM-dd HH:mm"); } catch { }
+            try
+            {
+                var culture = new CultureInfo("en-US");
+                culture.DateTimeFormat.Calendar = new GregorianCalendar();
+
+                savedLocal = DateTime.Parse(d.lastSavedIso)
+                    .ToLocalTime()
+                    .ToString("yyyy-MM-dd HH:mm", culture);
+            }
+            catch { }
+
             var t = TimeSpan.FromSeconds(Math.Max(0, d.totalPlaySeconds));
             var info = $"Saved {savedLocal} • Playtime {t:hh\\:mm\\:ss}";
             w.subtitleText.text = deleteMode ? $"{info}  (tap to delete)" : info;

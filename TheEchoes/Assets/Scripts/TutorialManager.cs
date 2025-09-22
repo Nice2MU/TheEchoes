@@ -25,7 +25,6 @@ public class TutorialManager : MonoBehaviour
     [Header("Tutorial Zones")]
     public List<TutorialZone> tutorialZones = new List<TutorialZone>();
 
-    // --- Player refs (auto find) ---
     private PlayerInput playerInput;
     private Rigidbody2D playerRb;
     private PlayerControl playerControl;
@@ -34,7 +33,6 @@ public class TutorialManager : MonoBehaviour
     private bool controlWasEnabled = true;
     private RigidbodyConstraints2D originalConstraints;
 
-    // Facing lock
     private bool lockFacing = false;
     private float savedScaleX = 1f;
     private SpriteRenderer[] spriteRenderers;
@@ -50,7 +48,6 @@ public class TutorialManager : MonoBehaviour
 
     private void Awake()
     {
-        // หา Player และ Components โดยอัตโนมัติ
         var player = GameObject.FindGameObjectWithTag("Player");
         if (player != null)
         {
@@ -62,7 +59,6 @@ public class TutorialManager : MonoBehaviour
 
         if (playerRb != null) originalConstraints = playerRb.constraints;
 
-        // ถ้า Panel เปิดอยู่ตั้งแต่แรก → ล็อกทันที
         if (tutorialPanel != null && tutorialPanel.activeSelf)
         {
             IsTutorialLockActive = true;
@@ -96,11 +92,13 @@ public class TutorialManager : MonoBehaviour
                     AutoShowOnce(zone.gifIndex, zone.autoHideDelay);
                     autoShownTags.Add(zone.tag);
                 }
+
                 else
                 {
                     if (tutorialPanel != null && !tutorialPanel.activeSelf && tutorialButton != null)
                         tutorialButton.SetActive(true);
                 }
+
                 return;
             }
         }
@@ -204,7 +202,6 @@ public class TutorialManager : MonoBehaviour
         autoHideRoutine = null;
     }
 
-    // -------- Lock / Unlock ----------
     private void LockPlayer()
     {
         if (tutorialPanel != null && !tutorialPanel.activeSelf) return;
@@ -242,7 +239,6 @@ public class TutorialManager : MonoBehaviour
             playerRb.constraints = originalConstraints;
     }
 
-    // -------- Facing lock ----------
     private void CaptureFacing()
     {
         if (spriteRenderers == null) return;
@@ -270,6 +266,7 @@ public class TutorialManager : MonoBehaviour
                 playerRb.angularVelocity = 0f;
                 playerRb.constraints = RigidbodyConstraints2D.FreezePositionX | RigidbodyConstraints2D.FreezeRotation;
             }
+
             else
             {
                 playerRb.constraints = savedConstraintsForFacing;
