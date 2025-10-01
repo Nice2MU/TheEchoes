@@ -30,6 +30,8 @@ public class RebindManager : MonoBehaviour
     private InputActionRebindingExtensions.RebindingOperation rebindingOperation;
     private RebindActionEntry currentRebindingEntry;
 
+    public static System.Action OnRebindComplete;
+
     void Start()
     {
         LoadAllBindings();
@@ -112,6 +114,7 @@ public class RebindManager : MonoBehaviour
                 rebindingOperation.Dispose();
                 rebindingOperation = null;
                 rebindingPanel.SetActive(false);
+                OnRebindComplete?.Invoke();
             })
 
             .OnCancel(operation =>
@@ -187,6 +190,7 @@ public class RebindManager : MonoBehaviour
                 PlayerPrefs.DeleteKey(key);
 
                 entry.actionRef.action.RemoveAllBindingOverrides();
+                OnRebindComplete?.Invoke();
             }
         }
 

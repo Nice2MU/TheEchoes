@@ -9,5 +9,5 @@ EditorBuildSettings:
     path: Assets/Scenes/TheEchoes.unity
     guid: 567d791d19f1a904897da6d1ad2f569d
   m_configObjects:
-    com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
+    com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 1aa6f7717fade5745aec0f5bd989e3ec, type: 3}
   m_UseUCBPForAssetBundles: 0

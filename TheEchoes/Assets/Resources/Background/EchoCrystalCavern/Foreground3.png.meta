@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: b173d51a794936e4daccd35f62942391
+guid: 7d6952a8773dce74fbfeab24bbf9472c
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -4409564098822278935
-    second: Foreground1_0
+      213: -9066746235192504506
+    second: Foreground3_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -113,13 +113,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Foreground1_0
+      name: Foreground3_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 426
-        height: 176
+        width: 960
+        height: 200
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -128,8 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 9e0f163a0d41ec2c0800000000000000
-      internalID: -4409564098822278935
+      spriteID: 64f8db636527c2280800000000000000
+      internalID: -9066746235192504506
       vertices: []
       indices: 
       edges: []
@@ -138,7 +138,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 306a07a9f57bd82478717a018e984959
+    spriteID: 22a4535626c71164e9ae2e34b2673470
     internalID: 0
     vertices: []
     indices: 
@@ -148,9 +148,9 @@ TextureImporter:
     spriteCustomMetadata:
       entries:
       - key: SpriteEditor.SliceSettings
-        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":426.0,"y":176.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":2,"keepEmptyRects":false,"isAlternate":false}'
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":960.0,"y":200.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":2,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
-      Foreground1_0: -4409564098822278935
+      Foreground3_0: -9066746235192504506
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

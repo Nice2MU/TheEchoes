@@ -1,17 +1,28 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System.Runtime.InteropServices;
+using UnityEngine.Serialization;
 
 public class UIManager : MonoBehaviour
 {
     [Header("Panels")]
     [SerializeField] private GameObject initialPanel;
     [SerializeField] private GameObject pauseMenu;
+
+    [Header("In-game UI")]
     [SerializeField] private GameObject playerui;
 
+    [FormerlySerializedAs("extraUi")]
+    [SerializeField] private GameObject mobileui;
+
+    [FormerlySerializedAs("extraUiMobileOnly")]
+    [SerializeField] private bool mobileUiMobileOnly = true;
+
     [SerializeField] private GameObject[] disallowPauseWhenActive;
-    
+
     private bool savedPlayerUiState;
+    private bool savedMobileUiState;
 
     public static bool IsUiMovementLocked { get; private set; }
 
@@ -34,8 +45,16 @@ public class UIManager : MonoBehaviour
     private float savedScaleX = 1f;
     private readonly Dictionary<SpriteRenderer, bool> savedFlipX = new();
 
+#if UNITY_WEBGL && !UNITY_EDITOR
+    [DllImport("__Internal")] private static extern bool IsMobile();
+#endif
+
+    private bool isMobileUiAllowed;
+
     private void Awake()
     {
+        isMobileUiAllowed = !mobileUiMobileOnly || IsMobileBrowser();
+
         var player = GameObject.FindGameObjectWithTag("Player");
         if (player != null)
         {
@@ -50,6 +69,9 @@ public class UIManager : MonoBehaviour
         bool shouldLock = IsAnyUiOpen();
         IsUiMovementLocked = shouldLock;
         if (shouldLock) EngageUiLock();
+
+        if (mobileui != null && !isMobileUiAllowed)
+            mobileui.SetActive(false);
     }
 
     private void Start()
@@ -67,6 +89,7 @@ public class UIManager : MonoBehaviour
             if (!IsAnyBlockingPanelOpen())
             {
                 if (!gamePaused) Pause();
+
                 else Resume();
             }
         }
@@ -75,6 +98,7 @@ public class UIManager : MonoBehaviour
         IsUiMovementLocked = shouldLock;
 
         if (shouldLock && !uiLockActive) EngageUiLock();
+
         else if (!shouldLock && uiLockActive) ReleaseUiLock();
 
         if (lockFacing)
@@ -117,7 +141,6 @@ public class UIManager : MonoBehaviour
     public void GoHome()
     {
         if (current != null) current.SetActive(false);
-
         history.Clear();
 
         if (initialPanel != null)
@@ -151,12 +174,10 @@ public class UIManager : MonoBehaviour
     public void Pause()
     {
         if (gamePaused) return;
-
         gamePaused = true;
         SetTimeScale(true);
 
-        if (pauseMenu != null)
-            ShowPanel(pauseMenu);
+        if (pauseMenu != null) ShowPanel(pauseMenu);
 
         if (SoundManager.instance != null)
             SoundManager.instance.MuteAll(true);
@@ -165,7 +186,6 @@ public class UIManager : MonoBehaviour
     public void Resume()
     {
         if (!gamePaused) return;
-
         gamePaused = false;
         SetTimeScale(false);
 
@@ -197,12 +217,10 @@ public class UIManager : MonoBehaviour
     {
         if (!gamePaused) Pause();
         if (targetPanel == null) return;
-
         ShowPanel(targetPanel);
     }
 
     public void Continue() => Resume();
-
     public void EnterGameplay() => current = null;
 
     private bool IsAnyBlockingPanelOpen()
@@ -210,6 +228,7 @@ public class UIManager : MonoBehaviour
         if (disallowPauseWhenActive == null) return false;
         foreach (var go in disallowPauseWhenActive)
             if (go != null && go.activeInHierarchy) return true;
+
         return false;
     }
 
@@ -220,6 +239,7 @@ public class UIManager : MonoBehaviour
             foreach (var go in disallowPauseWhenActive)
                 if (go != null && go.activeInHierarchy) return true;
         }
+
         return false;
     }
 
@@ -256,6 +276,12 @@ public class UIManager : MonoBehaviour
             if (playerui.activeSelf) playerui.SetActive(false);
         }
 
+        if (mobileui != null && isMobileUiAllowed)
+        {
+            savedMobileUiState = mobileui.activeSelf;
+            if (mobileui.activeSelf) mobileui.SetActive(false);
+        }
+
         CaptureFacing();
         ApplyFacingLock(true);
     }
@@ -278,6 +304,12 @@ public class UIManager : MonoBehaviour
 
         if (playerui != null)
             playerui.SetActive(savedPlayerUiState);
+
+        if (mobileui != null && isMobileUiAllowed)
+            mobileui.SetActive(savedMobileUiState);
+
+        else if (mobileui != null && !isMobileUiAllowed)
+            mobileui.SetActive(false);
     }
 
     private void CaptureFacing()
@@ -367,5 +399,19 @@ public class UIManager : MonoBehaviour
         if (playerRb == null) return;
         if (!Mathf.Approximately(playerRb.velocity.x, 0f))
             playerRb.velocity = new Vector2(0f, playerRb.velocity.y);
+    }
+
+    private bool IsMobileBrowser()
+    {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        try { return IsMobile(); }
+        catch { /* เผื่อ template ไม่มีฟังก์ชัน */ }
+#endif
+        bool heuristic =
+            Application.isMobilePlatform ||
+            Input.touchSupported ||
+            Mathf.Min(Screen.width, Screen.height) <= 900;
+
+        return heuristic;
     }
 }
