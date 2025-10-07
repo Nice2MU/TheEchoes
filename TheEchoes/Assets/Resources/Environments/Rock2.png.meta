@@ -1,0 +1,1170 @@
+fileFormatVersion: 2
+guid: 7c4db9bed08d88344b1bc3709c49df7a
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -5937200866895562579
+    second: Rock2_0
+  - first:
+      213: -5604964625577292770
+    second: Rock2_1
+  - first:
+      213: 7173273053214142725
+    second: Rock2_2
+  - first:
+      213: -3751032848796065094
+    second: Rock2_3
+  - first:
+      213: -1110173181885480235
+    second: Rock2_4
+  - first:
+      213: -5938505252695940275
+    second: Rock2_5
+  - first:
+      213: -8762211968066530779
+    second: Rock2_6
+  - first:
+      213: -7817975389020596052
+    second: Rock2_7
+  - first:
+      213: 4567317650846903456
+    second: Rock2_8
+  - first:
+      213: 8008045935442692978
+    second: Rock2_9
+  - first:
+      213: 3751300340961173284
+    second: Rock2_10
+  - first:
+      213: 7522431864066129022
+    second: Rock2_11
+  - first:
+      213: 6078762612064273452
+    second: Rock2_12
+  - first:
+      213: 585164434812967389
+    second: Rock2_13
+  - first:
+      213: -8699498533267822593
+    second: Rock2_14
+  - first:
+      213: 8232808817804708293
+    second: Rock2_15
+  - first:
+      213: -6678976645354702016
+    second: Rock2_16
+  - first:
+      213: -5827030186427023263
+    second: Rock2_17
+  - first:
+      213: -4707563755540684181
+    second: Rock2_18
+  - first:
+      213: -6184184217257091712
+    second: Rock2_19
+  - first:
+      213: 9070803765659880608
+    second: Rock2_20
+  - first:
+      213: 5258120778410034228
+    second: Rock2_21
+  - first:
+      213: 8697777048832953908
+    second: Rock2_22
+  - first:
+      213: -6419957787015381833
+    second: Rock2_23
+  - first:
+      213: -1672022114049330730
+    second: Rock2_24
+  - first:
+      213: 1351542888469540167
+    second: Rock2_25
+  - first:
+      213: 4437740309877025483
+    second: Rock2_26
+  - first:
+      213: -7817579977203113352
+    second: Rock2_27
+  - first:
+      213: -6410771026039928698
+    second: Rock2_28
+  - first:
+      213: -6672392197441668240
+    second: Rock2_29
+  - first:
+      213: -6252990418635328514
+    second: Rock2_30
+  - first:
+      213: -8671741694783705983
+    second: Rock2_31
+  - first:
+      213: 1958316814308452672
+    second: Rock2_32
+  - first:
+      213: -8806063986830692080
+    second: Rock2_33
+  - first:
+      213: 9197176094056682230
+    second: Rock2_34
+  - first:
+      213: 4314358037098550646
+    second: Rock2_35
+  - first:
+      213: -2842167856213528033
+    second: Rock2_36
+  - first:
+      213: 5948711879939370689
+    second: Rock2_37
+  - first:
+      213: 2894913366640953362
+    second: Rock2_38
+  - first:
+      213: 1877541092131281837
+    second: Rock2_39
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Rock2_0
+      rect:
+        serializedVersion: 2
+        x: 15
+        y: 620
+        width: 146
+        height: 146
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: da87c88a443da9da0800000000000000
+      internalID: -5937200866895562579
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rock2_1
+      rect:
+        serializedVersion: 2
+        x: 175
+        y: 620
+        width: 162
+        height: 63
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e1cc5d19e5a2732b0800000000000000
+      internalID: -5604964625577292770
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rock2_2
+      rect:
+        serializedVersion: 2
+        x: 351
+        y: 620
+        width: 101
+        height: 84
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 501f5b516d59c8360800000000000000
+      internalID: 7173273053214142725
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rock2_3
+      rect:
+        serializedVersion: 2
+        x: 463
+        y: 620
+        width: 175
+        height: 66
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ab260b27f77a1fbc0800000000000000
+      internalID: -3751032848796065094
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rock2_4
+      rect:
+        serializedVersion: 2
+        x: 655
+        y: 620
+        width: 50
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5d20d8e7f5fd790f0800000000000000
+      internalID: -1110173181885480235
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rock2_5
+      rect:
+        serializedVersion: 2
+        x: 719
+        y: 620
+        width: 98
+        height: 108
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d43644cafe0369da0800000000000000
+      internalID: -5938505252695940275
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rock2_6
+      rect:
+        serializedVersion: 2
+        x: 831
+        y: 620
+        width: 60
+        height: 91
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 522d7b4a3ae566680800000000000000
+      internalID: -8762211968066530779
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rock2_7
+      rect:
+        serializedVersion: 2
+        x: 911
+        y: 620
+        width: 120
+        height: 90
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ca85eaa1ec8f08390800000000000000
+      internalID: -7817975389020596052
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rock2_8
+      rect:
+        serializedVersion: 2
+        x: 1039
+        y: 620
+        width: 111
+        height: 76
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0ace91b643f526f30800000000000000
+      internalID: 4567317650846903456
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rock2_9
+      rect:
+        serializedVersion: 2
+        x: 1167
+        y: 620
+        width: 66
+        height: 50
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 27b821f895b422f60800000000000000
+      internalID: 8008045935442692978
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rock2_10
+      rect:
+        serializedVersion: 2
+        x: 18
+        y: 541
+        width: 66
+        height: 50
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 42fdacce8cb4f0430800000000000000
+      internalID: 3751300340961173284
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rock2_11
+      rect:
+        serializedVersion: 2
+        x: 101
+        y: 515
+        width: 111
+        height: 76
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e7cbdb0cceb056860800000000000000
+      internalID: 7522431864066129022
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rock2_12
+      rect:
+        serializedVersion: 2
+        x: 220
+        y: 501
+        width: 120
+        height: 90
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c244406936a1c5450800000000000000
+      internalID: 6078762612064273452
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rock2_13
+      rect:
+        serializedVersion: 2
+        x: 360
+        y: 500
+        width: 60
+        height: 91
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dd9183004fbee1800800000000000000
+      internalID: 585164434812967389
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rock2_14
+      rect:
+        serializedVersion: 2
+        x: 434
+        y: 483
+        width: 98
+        height: 108
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ff72a880d2c254780800000000000000
+      internalID: -8699498533267822593
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rock2_15
+      rect:
+        serializedVersion: 2
+        x: 546
+        y: 534
+        width: 50
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5c904f02000d04270800000000000000
+      internalID: 8232808817804708293
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rock2_16
+      rect:
+        serializedVersion: 2
+        x: 613
+        y: 525
+        width: 175
+        height: 66
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 04bb086b0228f43a0800000000000000
+      internalID: -6678976645354702016
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rock2_17
+      rect:
+        serializedVersion: 2
+        x: 799
+        y: 507
+        width: 101
+        height: 84
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1600a8a1bea322fa0800000000000000
+      internalID: -5827030186427023263
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rock2_18
+      rect:
+        serializedVersion: 2
+        x: 914
+        y: 528
+        width: 162
+        height: 63
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b626e71c4bf5baeb0800000000000000
+      internalID: -4707563755540684181
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rock2_19
+      rect:
+        serializedVersion: 2
+        x: 1099
+        y: 445
+        width: 146
+        height: 146
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 08d50d8383d5d2aa0800000000000000
+      internalID: -6184184217257091712
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rock2_20
+      rect:
+        serializedVersion: 2
+        x: 36
+        y: 387
+        width: 146
+        height: 114
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0acce6737f7f1ed70800000000000000
+      internalID: 9070803765659880608
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rock2_21
+      rect:
+        serializedVersion: 2
+        x: 196
+        y: 387
+        width: 162
+        height: 63
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4340b3f3df898f840800000000000000
+      internalID: 5258120778410034228
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rock2_22
+      rect:
+        serializedVersion: 2
+        x: 372
+        y: 387
+        width: 101
+        height: 84
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 43ecb33a426b4b870800000000000000
+      internalID: 8697777048832953908
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rock2_23
+      rect:
+        serializedVersion: 2
+        x: 484
+        y: 387
+        width: 175
+        height: 66
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7bcf1f7386ab7e6a0800000000000000
+      internalID: -6419957787015381833
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rock2_24
+      rect:
+        serializedVersion: 2
+        x: 676
+        y: 387
+        width: 50
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6d1fd7bfeb8cbc8e0800000000000000
+      internalID: -1672022114049330730
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rock2_25
+      rect:
+        serializedVersion: 2
+        x: 206
+        y: 264
+        width: 98
+        height: 108
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 74daee5a815a1c210800000000000000
+      internalID: 1351542888469540167
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rock2_26
+      rect:
+        serializedVersion: 2
+        x: 318
+        y: 264
+        width: 60
+        height: 91
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bcae6a7bc45069d30800000000000000
+      internalID: 4437740309877025483
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rock2_27
+      rect:
+        serializedVersion: 2
+        x: 398
+        y: 264
+        width: 120
+        height: 90
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8722a971e60628390800000000000000
+      internalID: -7817579977203113352
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rock2_28
+      rect:
+        serializedVersion: 2
+        x: 526
+        y: 264
+        width: 111
+        height: 76
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6880680b7bd5807a0800000000000000
+      internalID: -6410771026039928698
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rock2_29
+      rect:
+        serializedVersion: 2
+        x: 654
+        y: 264
+        width: 66
+        height: 50
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 07bb665f5a6e663a0800000000000000
+      internalID: -6672392197441668240
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rock2_30
+      rect:
+        serializedVersion: 2
+        x: 1108
+        y: 153
+        width: 146
+        height: 137
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ef3f151185ae839a0800000000000000
+      internalID: -6252990418635328514
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rock2_31
+      rect:
+        serializedVersion: 2
+        x: 564
+        y: 153
+        width: 50
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 18c297a9fd8c7a780800000000000000
+      internalID: -8671741694783705983
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rock2_32
+      rect:
+        serializedVersion: 2
+        x: 631
+        y: 153
+        width: 175
+        height: 66
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 049a78a54c65d2b10800000000000000
+      internalID: 1958316814308452672
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rock2_33
+      rect:
+        serializedVersion: 2
+        x: 817
+        y: 153
+        width: 101
+        height: 84
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 011b893e5739ac580800000000000000
+      internalID: -8806063986830692080
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rock2_34
+      rect:
+        serializedVersion: 2
+        x: 932
+        y: 153
+        width: 162
+        height: 63
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6f296f6cdeee2af70800000000000000
+      internalID: 9197176094056682230
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rock2_35
+      rect:
+        serializedVersion: 2
+        x: 738
+        y: 21
+        width: 66
+        height: 50
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6755c1bb6cdafdb30800000000000000
+      internalID: 4314358037098550646
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rock2_36
+      rect:
+        serializedVersion: 2
+        x: 821
+        y: 21
+        width: 111
+        height: 76
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f12fb5aa4679e88d0800000000000000
+      internalID: -2842167856213528033
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rock2_37
+      rect:
+        serializedVersion: 2
+        x: 940
+        y: 21
+        width: 120
+        height: 90
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1ceaeeaefe11e8250800000000000000
+      internalID: 5948711879939370689
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rock2_38
+      rect:
+        serializedVersion: 2
+        x: 1080
+        y: 21
+        width: 60
+        height: 91
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2180a2a7e5ccc2820800000000000000
+      internalID: 2894913366640953362
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rock2_39
+      rect:
+        serializedVersion: 2
+        x: 1154
+        y: 21
+        width: 98
+        height: 108
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dab1fa7fcad5e0a10800000000000000
+      internalID: 1877541092131281837
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Rock2_0: -5937200866895562579
+      Rock2_1: -5604964625577292770
+      Rock2_10: 3751300340961173284
+      Rock2_11: 7522431864066129022
+      Rock2_12: 6078762612064273452
+      Rock2_13: 585164434812967389
+      Rock2_14: -8699498533267822593
+      Rock2_15: 8232808817804708293
+      Rock2_16: -6678976645354702016
+      Rock2_17: -5827030186427023263
+      Rock2_18: -4707563755540684181
+      Rock2_19: -6184184217257091712
+      Rock2_2: 7173273053214142725
+      Rock2_20: 9070803765659880608
+      Rock2_21: 5258120778410034228
+      Rock2_22: 8697777048832953908
+      Rock2_23: -6419957787015381833
+      Rock2_24: -1672022114049330730
+      Rock2_25: 1351542888469540167
+      Rock2_26: 4437740309877025483
+      Rock2_27: -7817579977203113352
+      Rock2_28: -6410771026039928698
+      Rock2_29: -6672392197441668240
+      Rock2_3: -3751032848796065094
+      Rock2_30: -6252990418635328514
+      Rock2_31: -8671741694783705983
+      Rock2_32: 1958316814308452672
+      Rock2_33: -8806063986830692080
+      Rock2_34: 9197176094056682230
+      Rock2_35: 4314358037098550646
+      Rock2_36: -2842167856213528033
+      Rock2_37: 5948711879939370689
+      Rock2_38: 2894913366640953362
+      Rock2_39: 1877541092131281837
+      Rock2_4: -1110173181885480235
+      Rock2_5: -5938505252695940275
+      Rock2_6: -8762211968066530779
+      Rock2_7: -7817975389020596052
+      Rock2_8: 4567317650846903456
+      Rock2_9: 8008045935442692978
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
