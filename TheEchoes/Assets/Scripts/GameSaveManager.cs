@@ -4,9 +4,10 @@ using UnityEngine.SceneManagement;
 
 public class GameSaveManager : MonoBehaviour
 {
+    public static event Action OnSlotApplied;
+
     [Header("Save Settings")]
     public Transform player;
-
     public float saveCooldownSeconds = 0.75f;
 
     [Header("Preview Capture")]
@@ -17,16 +18,44 @@ public class GameSaveManager : MonoBehaviour
     float sessionStartTime;
     float lastSaveTime = -999f;
 
-    private void OnEnable() { sessionStartTime = Time.unscaledTime; }
-    private void OnDisable() { sessionPlaySeconds += (Time.unscaledTime - sessionStartTime); }
+    private void OnEnable()
+    {
+        sessionStartTime = Time.unscaledTime;
+    }
 
-    private void Start() { ApplyFromCurrentSlot(true); }
+    private void OnDisable()
+    {
+        sessionPlaySeconds += (Time.unscaledTime - sessionStartTime);
+    }
+
+    private void Start()
+    {
+        ApplyFromCurrentSlot(true);
+    }
 
     public bool ApplyFromCurrentSlot(bool teleportPlayer)
     {
         int slot = GlobalGame.CurrentSlot;
         var data = SaveDataSystem.Load(slot);
         if (data == null) return false;
+
+        if (DialogueRuntime.Instance)
+        {
+            DialogueRuntime.Instance.LoadFromSave(data.dialogue);
+            DialogueRuntime.Instance.RefreshSceneForCurrentSlot();
+        }
+
+        var bossesInScene = FindObjectsOfType<BossStationaryAI>(true);
+        if (bossesInScene != null)
+        {
+            var bossSave = data.bosses ?? new BossesSave();
+            foreach (var b in bossesInScene)
+            {
+                if (b == null) continue;
+                var entry = bossSave.Get(b.GetId());
+                b.ApplyBossSave(entry);
+            }
+        }
 
         if (data.scene == SceneManager.GetActiveScene().name && teleportPlayer && player)
             player.position = new Vector3(data.posX, data.posY, data.posZ);
@@ -48,10 +77,12 @@ public class GameSaveManager : MonoBehaviour
             }
 
             var lumerin = player.GetComponentInChildren<LumerinAbility>(true);
-            if (lumerin != null && data.lumerin != null) lumerin.SetCurrentBoost(data.lumerin.currentBoost);
+            if (lumerin != null && data.lumerin != null)
+                lumerin.SetCurrentBoost(data.lumerin.currentBoost);
 
             var ramble = player.GetComponentInChildren<RambleAbility>(true);
-            if (ramble != null && data.ramble != null) ramble.ApplySave(data.ramble);
+            if (ramble != null && data.ramble != null)
+                ramble.ApplySave(data.ramble);
 
             var health = player.GetComponent<PlayerHealth>();
             if (health != null)
@@ -62,7 +93,6 @@ public class GameSaveManager : MonoBehaviour
                         data.health.checkpointX, data.health.checkpointY, data.health.checkpointZ);
                     health.SetHits(Mathf.Clamp(data.health.hits, 0, 5), true);
                 }
-
                 else
                 {
                     PlayerHealth.lastCheckpointPosition = player.position;
@@ -72,6 +102,9 @@ public class GameSaveManager : MonoBehaviour
         }
 
         sessionStartTime = Time.unscaledTime;
+
+        OnSlotApplied?.Invoke();
+
         return true;
     }
 
@@ -112,10 +145,12 @@ public class GameSaveManager : MonoBehaviour
             }
 
             var lumerin = player.GetComponentInChildren<LumerinAbility>(true);
-            if (lumerin != null) data.lumerin = new LumerinSave { currentBoost = lumerin.GetCurrentBoost() };
+            if (lumerin != null)
+                data.lumerin = new LumerinSave { currentBoost = lumerin.GetCurrentBoost() };
 
             var ramble = player.GetComponentInChildren<RambleAbility>(true);
-            if (ramble != null) data.ramble = ramble.BuildSave();
+            if (ramble != null)
+                data.ramble = ramble.BuildSave();
 
             var health = player.GetComponent<PlayerHealth>();
             if (health != null)
@@ -128,6 +163,26 @@ public class GameSaveManager : MonoBehaviour
                     checkpointY = cp.y,
                     checkpointZ = cp.z
                 };
+            }
+        }
+
+        DialogueSave composed = old?.dialogue ?? new DialogueSave();
+        if (DialogueRuntime.Instance != null)
+        {
+            var fromRuntime = DialogueRuntime.Instance.BuildSave();
+            composed.MergeFrom(fromRuntime);
+        }
+        data.dialogue = composed;
+
+        data.bosses = new BossesSave();
+        var bossesInScene = FindObjectsOfType<BossStationaryAI>(true);
+        if (bossesInScene != null)
+        {
+            foreach (var b in bossesInScene)
+            {
+                if (b == null) continue;
+                var entry = b.BuildSave();
+                data.bosses.Upsert(entry);
             }
         }
 
@@ -145,28 +200,65 @@ public class GameSaveManager : MonoBehaviour
             Destroy(tex);
             return Convert.ToBase64String(bytes);
         }
-        catch { return null; }
+        catch
+        {
+            return null;
+        }
     }
 
     private Texture2D CaptureDownscaled(int w, int h)
     {
-        Texture2D full = ScreenCapture.CaptureScreenshotAsTexture();
-        if (!full) return null;
+        Camera cam = Camera.main;
+        if (cam == null) return null;
 
-        var small = new Texture2D(w, h, TextureFormat.RGB24, false);
-        for (int y = 0; y < h; y++)
+        int sw = Screen.width;
+        int sh = Screen.height;
+
+        RenderTexture rt = new RenderTexture(sw, sh, 24);
+        RenderTexture prevRT = cam.targetTexture;
+        RenderTexture prevActive = RenderTexture.active;
+
+        try
         {
-            float v = (float)y / (h - 1);
-            int srcY = Mathf.RoundToInt(v * (full.height - 1));
-            for (int x = 0; x < w; x++)
+            cam.targetTexture = rt;
+            cam.Render();
+
+            RenderTexture.active = rt;
+
+            Texture2D fullTex = new Texture2D(sw, sh, TextureFormat.RGB24, false);
+            fullTex.ReadPixels(new Rect(0, 0, sw, sh), 0, 0);
+            fullTex.Apply();
+
+            if (sw == w && sh == h)
             {
-                float u = (float)x / (w - 1);
-                int srcX = Mathf.RoundToInt(u * (full.width - 1));
-                small.SetPixel(x, y, full.GetPixel(srcX, srcY));
+                return fullTex;
+            }
+
+            Texture2D downTex = new Texture2D(w, h, TextureFormat.RGB24, false);
+            for (int y = 0; y < h; y++)
+            {
+                float v = (float)y / (h - 1);
+                for (int x = 0; x < w; x++)
+                {
+                    float u = (float)x / (w - 1);
+                    Color c = fullTex.GetPixelBilinear(u, v);
+                    downTex.SetPixel(x, y, c);
+                }
+            }
+            downTex.Apply();
+
+            Destroy(fullTex);
+            return downTex;
+        }
+        finally
+        {
+            cam.targetTexture = prevRT;
+            RenderTexture.active = prevActive;
+            if (rt != null)
+            {
+                rt.Release();
+                Destroy(rt);
             }
         }
-        small.Apply();
-        Destroy(full);
-        return small;
     }
 }

@@ -1,404 +1,883 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Events;
 
-public class BossStationaryAI : MonoBehaviour, IDamageable
+public class BossStationaryAI : MonoBehaviour
 {
-    [Header("References")]
-    [SerializeField] private Transform player;
-    [SerializeField] private Animator animator;
-    [SerializeField] private BoxCollider2D roomBounds;
+    [Header("Boss ID")]
+    public string bossId = "boss_1";
 
-    // -------- Start / Triggering --------
-    [Header("Start / Triggering")]
-    [Tooltip("ถ้าเปิดไว้ = จะรอคำสั่ง Trigger ถึงเริ่ม (เหมาะกับกดปุ่ม/จบไดอาลอก)")]
-    [SerializeField] private bool startByButton = true;
+    [Header("Player / Trigger")]
+    public Transform player;
+    public Collider2D triggerZone;
+    public bool startWhenPlayerEnterZone = true;
+    public float startDelayAfterEnter = 0.5f;
 
-    [Tooltip("ดีเลย์เริ่ม (วินาที) เมื่อตั้งค่าเริ่มด้วยปุ่ม/ไดอาลอก")]
-    [SerializeField] private float manualStartDelay = 0f;
+    [Header("Arms")]
+    public Transform[] arms;
 
-    [Tooltip("อนุญาตปุ่มทดสอบใน Editor/Debug (เช่นกด F เพื่อเริ่ม)")]
-    [SerializeField] private bool allowDebugKeyTrigger = false;
-    [SerializeField] private KeyCode debugTriggerKey = KeyCode.F;
+    [Header("Idle Motion")]
+    public float idleAmplitude = 25f;
+    public float idleSpeed = 1.2f;
+    public float phaseOffset = Mathf.PI / 3f;
 
-    [Header("Spawn / Intro Animation")]
-    [Tooltip("เล่นอนิเมชันเปิดตัวเมื่อ 'เริ่มบอส' (ทั้งกรณีกดปุ่มหรืออัตโนมัติ)")]
-    [SerializeField] private bool playSpawnOnStart = true;
-    [Tooltip("Trigger ชื่ออะไรใน Animator สำหรับอนิเมชันเริ่ม")]
-    [SerializeField] private string spawnTriggerName = "Spawn";
-    [Tooltip("ถ้าเปิดไว้ จะรอ Animation Event เรียก OnSpawnIntroFinished() ค่อยเริ่ม AI")]
-    [SerializeField] private bool waitForSpawnEvent = false;
-    [Tooltip("ถ้าไม่รอ Event จะหน่วงเวลาหลัง Trigger Spawn เท่านี้ก่อนเริ่ม AI")]
-    [SerializeField] private float startDelayAfterSpawn = 0f;
+    [Header("Reveal Arms")]
+    public bool revealArmsSequentially = true;
+    public float revealStartDelay = 1.0f;
+    public float revealInterval = 0.6f;
 
-    // -------- Attack timing --------
-    [Header("Attack timing")]
-    [SerializeField] private float minAttackInterval = 5f;
-    [SerializeField] private float maxAttackInterval = 15f;
+    [Header("Group 1: TopDown Slam")]
+    public bool enableGroup1_Slam = true;
+    public float hoverOffsetY = 2.5f;
+    public float slamRiseTime = 0.35f;
+    public float hoverDuration = 0.4f;
+    public float hoverHoldBeforeSlam = 0.15f;
+    public float hoverFollowSpeed = 4f;
+    public float slamDownTime = 0.2f;
+    public float slamReturnTime = 0.35f;
+    public float slamArmAngleLeft = -90f;
+    public float slamArmAngleRight = 90f;
 
-    // -------- Zones --------
-    [Header("Zone split")]
-    [Range(0.05f, 0.95f)] public float leftSplit = 0.33f;
-    [Range(0.05f, 0.95f)] public float rightSplit = 0.66f;
-    [Tooltip("เส้นระดับพื้น (world Y)")]
-    public float groundY = 0f;
-    [Tooltip("เผื่อความใกล้พื้น")]
-    public float groundTolerance = 0.3f;
+    [Header("Group 2: Horizontal Sweep")]
+    public bool enableGroup2 = true;
+    public float g2_sweepHold = 0.15f;
+    public float g2_sweepSpeed = 8f;
+    public float g2_sweepYOffset = 0f;
+    public float g2_returnTime = 0.35f;
+    public float g2_sidePadding = 0.3f;
 
-    // -------- Attacks --------
-    [Header("Attack definitions")]
-    [SerializeField] private AttackEntry[] attackTable;
+    [Header("Group 3: Diagonal Slam")]
+    public bool enableGroup3 = true;
+    public float g3_offsetX = 2.5f;
+    public float g3_offsetY = 2.0f;
+    public float g3_riseTime = 0.35f;
+    public float g3_followDuration = 0.4f;
+    public float g3_followSpeed = 3.5f;
+    public float g3_holdBeforeSlam = 0.12f;
+    public float g3_slamTime = 0.25f;
+    public float g3_returnTime = 0.4f;
+    public float g3_angleLeft = -45f;
+    public float g3_angleRight = 45f;
 
-    // -------- Hit check --------
-    [Header("Hit check")]
-    [SerializeField] private LayerMask playerLayer;
-    [SerializeField] private Vector2 hitOffset = Vector2.zero;
-    [SerializeField] private float hitRadius = 0.6f;
+    [Header("Hit / Bounds")]
+    public LayerMask playerLayer;
+    public float zoneTopPadding = 0.4f;
+    public float zoneBottomPadding = 0.2f;
+    public float slamHitRadius = 0.75f;
+    public int slamDamage = 1;
+    public float g2_hitRadius = 0.6f;
+    public int g2_damage = 1;
+    public float g3_hitRadius = 0.7f;
+    public int g3_damage = 1;
 
-    // -------- Health / Death --------
-    [Header("Boss Health")]
-    [SerializeField] private int maxHealth = 10;
-    [SerializeField] private bool invulnerable = false;
-    [SerializeField] private bool destroyAfterDeath = false;
-    [SerializeField] private float destroyDelay = 2f;
+    [Header("Attack Selector")]
+    public Vector2 attackSelectInterval = new Vector2(10f, 20f);
 
-    [Header("Death Animation")]
-    [SerializeField] private string deathTriggerName = "Die";
-    [SerializeField] private bool setDeadBool = false;
-    [SerializeField] private string deadBoolName = "Dead";
+    [Header("Arm Destroy")]
+    public bool disableArmObjectOnDestroy = true;
 
-    // -------- Objects toggling --------
-    [Header("Objects On Start (apply when boss STARTS)")]
-    [SerializeField] private GameObject[] objectsToEnableOnStart;
-    [SerializeField] private GameObject[] objectsToDisableOnStart;
+    [Header("Boss Start / End Objects")]
+    public GameObject[] activateOnStart;
+    public GameObject[] deactivateOnStart;
+    public GameObject[] activateOnDeath;
+    public GameObject[] deactivateOnDeath;
 
-    [Header("Objects On Death")]
-    [SerializeField] private GameObject[] objectsToEnableOnDeath;
-    [SerializeField] private GameObject[] objectsToDisableOnDeath;
+    [Header("Camera Control")]
+    public Camera mainCamera;
+    public Camera bossCamera;
+    public bool switchCameraOnStart = true;
+    public bool switchBackOnDeath = true;
 
-    // -------- Events --------
-    [Header("Events")]
-    public UnityEvent onDeath;
-    public UnityEvent<int> onDamaged;
-    public UnityEvent onStarted; // ยิงเมื่อบอสเริ่มทำงานจริง
+    [Header("UI Canvas Switching")]
+    public Canvas uiCanvas;
+    public bool switchUICanvasWithCamera = true;
 
-    // -------- Runtime --------
-    private bool running;
-    private Coroutine loopCo;
-    private AttackEntry lastChosen;
-    private int currentHealth;
-    private bool isDead;
+    [Header("Canvas Plane Distance")]
+    public float mainCanvasPlaneDistance = 100f;
+    public float bossCanvasPlaneDistance = 200f;
 
-    private bool hasBeenTriggered = false;   // ป้องกันกดซ้ำ
-    private float pendingDelay = 0f;         // ดีเลย์ที่จะใช้หลังจบอินโทร (ถ้ารอ Event)
+    public event Action OnBossRevealStart;
+    public event Action OnBossArmDestroyed;
+    public event Action OnBossDied;
 
-    // ---------- Enums ----------
-    public enum HZone { Left, Mid, Right }
-    public enum VZone { Ground, Air }
+    private bool aiRunning = false;
+    private bool hasTriggered = false;
+    private bool isDead = false;
+    private HashSet<Transform> armsInAction = new HashSet<Transform>();
+    private bool[] armAlive;
 
-    [System.Flags] public enum HMask { None = 0, Left = 1, Mid = 2, Right = 4, Any = Left | Mid | Right }
-    [System.Flags] public enum VMask { None = 0, Ground = 1, Air = 2, Any = Ground | Air }
+    private Transform[] armOriginalParents;
+    private Vector3[] armOriginalLocalPos;
+    private Quaternion[] armOriginalLocalRot;
 
-    [System.Serializable]
-    public class AttackEntry
+    private bool suppressAutoStartOnce = false;
+
+    private bool[] init_activateOnStartStates;
+    private bool[] init_deactivateOnStartStates;
+    private bool[] init_activateOnDeathStates;
+    private bool[] init_deactivateOnDeathStates;
+
+    public bool IsDead => isDead;
+
+    void Awake()
     {
-        [Tooltip("Trigger ใน Animator ของท่านี้")]
-        public string triggerName = "Attack";
-        [Tooltip("ท่านี้ใช้ได้ในโซนแนวนอนใดบ้าง")]
-        public HMask horizontal = HMask.Any;
-        [Tooltip("ท่านี้ใช้ได้ในโซนแนวตั้งใดบ้าง")]
-        public VMask vertical = VMask.Any;
-        [Tooltip("น้ำหนักสุ่ม (ยิ่งมากยิ่งถูกเลือกบ่อย)")]
-        [Min(0f)] public float weight = 1f;
-        [Tooltip("ดาเมจของท่านี้ (ใช้ใน OnAttackHit)")]
-        public int damage = 1;
+        if (string.IsNullOrEmpty(bossId))
+            bossId = gameObject.name;
+
+        PlayerHealth.OnPlayerRespawned += HandlePlayerRespawned;
     }
 
-    private void Start()
+    void OnDestroy()
+    {
+        PlayerHealth.OnPlayerRespawned -= HandlePlayerRespawned;
+    }
+
+    void Start()
     {
         if (player == null)
         {
             var p = GameObject.FindGameObjectWithTag("Player");
             if (p) player = p.transform;
         }
-        if (animator == null) animator = GetComponentInChildren<Animator>();
 
-        currentHealth = Mathf.Max(1, maxHealth);
+        if (arms != null && arms.Length > 0)
+        {
+            armAlive = new bool[arms.Length];
+            armOriginalParents = new Transform[arms.Length];
+            armOriginalLocalPos = new Vector3[arms.Length];
+            armOriginalLocalRot = new Quaternion[arms.Length];
+
+            for (int i = 0; i < arms.Length; i++)
+            {
+                armAlive[i] = (arms[i] != null);
+                if (arms[i] != null)
+                {
+                    armOriginalParents[i] = arms[i].parent;
+                    armOriginalLocalPos[i] = arms[i].localPosition;
+                    armOriginalLocalRot[i] = arms[i].localRotation;
+                }
+            }
+        }
+
+        init_activateOnStartStates = CaptureStates(activateOnStart);
+        init_deactivateOnStartStates = CaptureStates(deactivateOnStart);
+        init_activateOnDeathStates = CaptureStates(activateOnDeath);
+        init_deactivateOnDeathStates = CaptureStates(deactivateOnDeath);
+
+        if (!startWhenPlayerEnterZone && !suppressAutoStartOnce)
+        {
+            StartBoss();
+        }
+
+        suppressAutoStartOnce = false;
+    }
+
+    void Update()
+    {
+        if (startWhenPlayerEnterZone && !hasTriggered && !isDead && triggerZone != null && player != null)
+        {
+            if (triggerZone.bounds.Contains(player.position))
+            {
+                hasTriggered = true;
+                StartCoroutine(StartAfterDelay(startDelayAfterEnter));
+            }
+        }
+
+        if (aiRunning && arms != null)
+        {
+            float t = Time.time;
+            for (int i = 0; i < arms.Length; i++)
+            {
+                Transform arm = arms[i];
+                if (arm == null) continue;
+                if (armsInAction.Contains(arm)) continue;
+                if (revealArmsSequentially && !IsArmVisible(arm)) continue;
+
+                float angle = Mathf.Sin(t * idleSpeed + i * phaseOffset) * idleAmplitude;
+                arm.localRotation = Quaternion.Euler(0f, 0f, angle);
+            }
+        }
+    }
+
+    void HandlePlayerRespawned()
+    {
+        HardResetToBeforeStart();
+    }
+
+    public void HardResetToBeforeStart()
+    {
+        StopAllCoroutines();
+
+        aiRunning = false;
+        hasTriggered = false;
         isDead = false;
+        armsInAction.Clear();
+        suppressAutoStartOnce = false;
 
-        // ถ้าไม่ใช่โหมดกดปุ่ม ก็เริ่มอัตโนมัติ (คงพฤติกรรมเก่า)
-        if (!startByButton)
+        ResetArmsToOriginal(true);
+
+        ApplyStates(activateOnStart, init_activateOnStartStates);
+        ApplyStates(deactivateOnStart, init_deactivateOnStartStates);
+        ApplyStates(activateOnDeath, init_activateOnDeathStates);
+        ApplyStates(deactivateOnDeath, init_deactivateOnDeathStates);
+
+        SwitchToMainCamera();
+
+        if (!startWhenPlayerEnterZone)
+            StartBoss();
+    }
+
+    public void ResetToPreBossForLoad()
+    {
+        StopAllCoroutines();
+
+        aiRunning = false;
+        hasTriggered = false;
+        isDead = false;
+        armsInAction.Clear();
+
+        suppressAutoStartOnce = true;
+
+        ResetArmsToOriginal(true);
+
+        ApplyStates(activateOnStart, init_activateOnStartStates);
+        ApplyStates(deactivateOnStart, init_deactivateOnStartStates);
+        ApplyStates(activateOnDeath, init_activateOnDeathStates);
+        ApplyStates(deactivateOnDeath, init_deactivateOnDeathStates);
+
+        SwitchToMainCamera();
+    }
+
+    void ResetArmsToOriginal(bool respectReveal)
+    {
+        if (arms == null) return;
+        for (int i = 0; i < arms.Length; i++)
         {
-            InternalTriggerStart(delayOverride: 0f);
-        }
-        // ถ้าเป็นโหมดกดปุ่ม: จะรอให้เรียก TriggerBossStart(...)/ปุ่ม debug
-    }
+            Transform a = arms[i];
+            if (a == null) continue;
 
-    private void Update()
-    {
-        if (allowDebugKeyTrigger && !hasBeenTriggered && !isDead && Input.GetKeyDown(debugTriggerKey))
-        {
-            TriggerBossStartWithDelay(manualStartDelay);
-        }
-    }
+            if (armOriginalParents != null && armOriginalParents[i] != null)
+                a.SetParent(armOriginalParents[i], false);
 
-    // =======================
-    //       PUBLIC API
-    // =======================
+            if (armOriginalLocalPos != null) a.localPosition = armOriginalLocalPos[i];
+            if (armOriginalLocalRot != null) a.localRotation = armOriginalLocalRot[i];
 
-    /// <summary>
-    /// เรียกจากปุ่ม/ไดอาลอก: เริ่มบอสหลังหน่วงตาม manualStartDelay
-    /// </summary>
-    public void TriggerBossStart()
-    {
-        TriggerBossStartWithDelay(manualStartDelay);
-    }
+            a.gameObject.SetActive(true);
 
-    /// <summary>
-    /// เรียกจากปุ่ม/ไดอาลอก: เริ่มบอสหลังหน่วง seconds วินาที
-    /// </summary>
-    public void TriggerBossStartWithDelay(float seconds)
-    {
-        InternalTriggerStart(delayOverride: Mathf.Max(0f, seconds));
-    }
-
-    public bool IsStarted => running || hasBeenTriggered;
-    public int CurrentHealth => currentHealth;
-    public int MaxHealth => maxHealth;
-
-    // =======================
-    //    INTERNAL START FLOW
-    // =======================
-    private void InternalTriggerStart(float delayOverride)
-    {
-        if (hasBeenTriggered || isDead) return;
-        hasBeenTriggered = true;
-
-        // จัดการอ็อบเจ็กต์ตอนเริ่ม (ตอนนี้เพิ่งเริ่มจริง)
-        foreach (var go in objectsToEnableOnStart) if (go) go.SetActive(true);
-        foreach (var go in objectsToDisableOnStart) if (go) go.SetActive(false);
-
-        // เล่นอนิเมชันเริ่ม (ถ้าเปิด)
-        if (playSpawnOnStart && animator != null && !string.IsNullOrEmpty(spawnTriggerName))
-        {
-            animator.SetTrigger(spawnTriggerName);
-
-            if (waitForSpawnEvent)
+            if (respectReveal)
             {
-                // รอ Animation Event เรียก OnSpawnIntroFinished() แล้วค่อยหน่วง delayOverride
-                pendingDelay = delayOverride;
-                return;
+                if (revealArmsSequentially)
+                    SetArmVisible(a, false);
+                else
+                    SetArmVisible(a, true);
             }
-            else
-            {
-                // ไม่รอ Event: รวมดีเลย์ทั้งหมด = delayOverride + startDelayAfterSpawn
-                float totalDelay = Mathf.Max(0f, delayOverride) + Mathf.Max(0f, startDelayAfterSpawn);
-                StartCoroutine(StartAfterDelay(totalDelay));
-                return;
-            }
+
+            if (armAlive != null) armAlive[i] = true;
         }
-
-        // ไม่มีอนิเมชันเริ่ม: หน่วง delayOverride แล้วเริ่ม AI
-        StartCoroutine(StartAfterDelay(Mathf.Max(0f, delayOverride)));
     }
 
-    private IEnumerator StartAfterDelay(float seconds)
+    IEnumerator StartAfterDelay(float delay)
     {
-        if (seconds > 0f) yield return new WaitForSeconds(seconds);
-        StartAI();
+        if (delay > 0f)
+            yield return new WaitForSeconds(delay);
+        StartBoss();
     }
 
-    /// <summary>
-    /// เรียกจาก Animation Event ตอนท้ายอนิเมชันเปิดตัว
-    /// </summary>
-    public void OnSpawnIntroFinished()
+    void StartBoss()
     {
-        if (!hasBeenTriggered || isDead) return; // ยังไม่ถูกสั่งเริ่ม หรือบอสตายไปแล้ว
-        if (!running) StartCoroutine(StartAfterDelay(Mathf.Max(0f, pendingDelay)));
-    }
+        if (aiRunning || isDead) return;
+        aiRunning = true;
+        hasTriggered = true;
 
-    // =======================
-    //        AI CORE
-    // =======================
-    public void StartAI()
-    {
-        if (running || isDead) return;
-        running = true;
-
-        onStarted?.Invoke(); // แจ้งคนอื่นว่าบอสเริ่มแล้ว
-        loopCo = StartCoroutine(AttackLoop());
-    }
-
-    public void StopAI()
-    {
-        if (!running) return;
-        running = false;
-        if (loopCo != null) StopCoroutine(loopCo);
-    }
-
-    private IEnumerator AttackLoop()
-    {
-        while (running && !isDead)
+        if (switchCameraOnStart)
         {
-            float wait = Random.Range(minAttackInterval, maxAttackInterval);
-            yield return new WaitForSeconds(wait);
-
-            if (!running || isDead || player == null) continue;
-
-            var hz = GetHorizontalZone();
-            var vz = GetVerticalZone();
-
-            var choice = ChooseAttack(hz, vz);
-            if (choice == null) continue;
-
-            lastChosen = choice;
-            animator?.SetTrigger(choice.triggerName);
+            SwitchToBossCamera();
         }
-    }
 
-    // =======================
-    //       ZONE / CHOOSER
-    // =======================
-    private HZone GetHorizontalZone()
-    {
-        if (roomBounds == null || player == null)
-            return (player.position.x < transform.position.x) ? HZone.Left : HZone.Right;
+        ToggleObjects(activateOnStart, true);
+        ToggleObjects(deactivateOnStart, false);
 
-        Bounds b = roomBounds.bounds;
-        float t = Mathf.InverseLerp(b.min.x, b.max.x, player.position.x);
-        if (t < leftSplit) return HZone.Left;
-        if (t > rightSplit) return HZone.Right;
-        return HZone.Mid;
-    }
-
-    private VZone GetVerticalZone()
-    {
-        if (player == null) return VZone.Ground;
-        float dy = player.position.y - groundY;
-        return (dy <= groundTolerance) ? VZone.Ground : VZone.Air;
-    }
-
-    private AttackEntry ChooseAttack(HZone hz, VZone vz)
-    {
-        if (attackTable == null || attackTable.Length == 0) return null;
-        List<AttackEntry> pool = new List<AttackEntry>();
-
-        foreach (var a in attackTable)
+        if (revealArmsSequentially)
         {
-            if (a == null || a.weight <= 0f) continue;
-
-            bool hOK = (a.horizontal & ToMask(hz)) != HMask.None;
-            bool vOK = (a.vertical & ToMask(vz)) != VMask.None;
-
-            if (hOK && vOK) pool.Add(a);
+            HideAllArms();
+            StartCoroutine(RevealArmsThenStartAttack());
         }
-
-        if (pool.Count == 0) return null;
-        if (pool.Count == 1) return pool[0];
-
-        float sum = 0f;
-        foreach (var a in pool) sum += Mathf.Max(0f, a.weight);
-        float r = Random.value * sum;
-        foreach (var a in pool)
-        {
-            r -= Mathf.Max(0f, a.weight);
-            if (r <= 0f) return a;
-        }
-        return pool[pool.Count - 1];
-    }
-
-    private HMask ToMask(HZone z) => (z == HZone.Left) ? HMask.Left : (z == HZone.Mid ? HMask.Mid : HMask.Right);
-    private VMask ToMask(VZone z) => (z == VZone.Ground) ? VMask.Ground : VMask.Air;
-
-    // =======================
-    //     ATTACK HIT EVENT
-    // =======================
-    public void OnAttackHit()
-    {
-        if (isDead) return;
-
-        Vector2 worldPos = (Vector2)transform.position + hitOffset;
-        var hit = Physics2D.OverlapCircle(worldPos, hitRadius, playerLayer);
-        if (!hit) return;
-
-        var dmg = hit.GetComponent<IDamageable>();
-        int amount = (lastChosen != null ? lastChosen.damage : 1);
-
-        if (dmg != null) dmg.TakeDamage(amount);
         else
         {
-            var ph = hit.GetComponent<PlayerHealth>();
-            if (ph != null)
-                ph.SendMessage("TakeDamage", amount, SendMessageOptions.DontRequireReceiver);
+            ShowAllArms();
+            StartCoroutine(AIAttackSelector());
         }
     }
 
-    // =======================
-    //     DAMAGE / DEATH
-    // =======================
-    public void TakeDamage(int amount)
+    void HideAllArms()
     {
-        if (isDead || invulnerable || amount <= 0) return;
-
-        currentHealth = Mathf.Max(0, currentHealth - amount);
-        onDamaged?.Invoke(currentHealth);
-
-        if (currentHealth <= 0) Die();
+        if (arms == null) return;
+        foreach (var arm in arms)
+            if (arm != null)
+                SetArmVisible(arm, false);
     }
 
-    private void Die()
+    void ShowAllArms()
+    {
+        if (arms == null) return;
+        foreach (var arm in arms)
+            if (arm != null)
+                SetArmVisible(arm, true);
+    }
+
+    void SetArmVisible(Transform arm, bool visible)
+    {
+        arm.gameObject.SetActive(true);
+        var srs = arm.GetComponentsInChildren<SpriteRenderer>(true);
+        foreach (var sr in srs)
+            sr.enabled = visible;
+    }
+
+    bool IsArmVisible(Transform arm)
+    {
+        var sr = arm.GetComponentInChildren<SpriteRenderer>(true);
+        return sr != null && sr.enabled;
+    }
+
+    IEnumerator RevealArmsThenStartAttack()
+    {
+        if (revealStartDelay > 0f)
+            yield return new WaitForSeconds(revealStartDelay);
+
+        OnBossRevealStart?.Invoke();
+
+        if (arms != null)
+        {
+            for (int i = 0; i < arms.Length; i++)
+            {
+                if (arms[i] != null)
+                {
+                    SetArmVisible(arms[i], true);
+                    PlaySFX("BossArmSpawn");
+                }
+
+                if (revealInterval > 0f)
+                    yield return new WaitForSeconds(revealInterval);
+            }
+        }
+
+        StartCoroutine(AIAttackSelector());
+    }
+
+    IEnumerator AIAttackSelector()
+    {
+        while (aiRunning && !isDead)
+        {
+            float wait = UnityEngine.Random.Range(attackSelectInterval.x, attackSelectInterval.y);
+            yield return new WaitForSeconds(wait);
+
+            while (armsInAction.Count > 0 && aiRunning && !isDead)
+                yield return null;
+
+            List<int> availableGroups = new List<int>();
+            if (enableGroup1_Slam && GroupHasUsableArm(0, 1)) availableGroups.Add(1);
+            if (enableGroup2 && GroupHasUsableArm(2, 3)) availableGroups.Add(2);
+            if (enableGroup3 && GroupHasUsableArm(4, 5)) availableGroups.Add(3);
+
+            if (availableGroups.Count == 0) continue;
+
+            int chosen = availableGroups[UnityEngine.Random.Range(0, availableGroups.Count)];
+            switch (chosen)
+            {
+                case 1: AttackGroup1(); break;
+                case 2: AttackGroup2(); break;
+                case 3: AttackGroup3(); break;
+            }
+        }
+    }
+
+    bool GroupHasUsableArm(int start, int end)
+    {
+        if (arms == null || armAlive == null) return false;
+        for (int i = start; i <= end; i++)
+        {
+            if (i < 0 || i >= arms.Length) continue;
+            if (arms[i] == null) continue;
+            if (!armAlive[i]) continue;
+            if (armsInAction.Contains(arms[i])) continue;
+            if (revealArmsSequentially && !IsArmVisible(arms[i])) continue;
+            return true;
+        }
+        return false;
+    }
+
+    void AttackGroup1()
+    {
+        List<int> usable = new List<int>();
+        for (int i = 0; i <= 1; i++)
+            if (GroupHasUsableArm(i, i)) usable.Add(i);
+        if (usable.Count == 0) return;
+        int idx = usable[UnityEngine.Random.Range(0, usable.Count)];
+        StartCoroutine(TopDownSlamAttack(arms[idx], player, idx));
+    }
+
+    void AttackGroup2()
+    {
+        List<int> usable = new List<int>();
+        for (int i = 2; i <= 3; i++)
+            if (GroupHasUsableArm(i, i)) usable.Add(i);
+        if (usable.Count == 0) return;
+        int idx = usable[UnityEngine.Random.Range(0, usable.Count)];
+        bool startFromLeft = (idx == 2);
+        StartCoroutine(HorizontalSweepAttack(arms[idx], player, startFromLeft));
+    }
+
+    void AttackGroup3()
+    {
+        List<int> usable = new List<int>();
+        for (int i = 4; i <= 5; i++)
+            if (GroupHasUsableArm(i, i)) usable.Add(i);
+        if (usable.Count == 0) return;
+        int idx = usable[UnityEngine.Random.Range(0, usable.Count)];
+        bool fromLeft = (idx == 4);
+        StartCoroutine(DiagonalSlamAttack(arms[idx], player, fromLeft));
+    }
+
+    IEnumerator TopDownSlamAttack(Transform arm, Transform target, int armIndex)
+    {
+        armsInAction.Add(arm);
+
+        Transform originalParent = arm.parent;
+        Vector3 originalPos = arm.position;
+        Quaternion originalRot = arm.rotation;
+        arm.SetParent(null, true);
+
+        PlaySFX("BossArmMove");
+
+        var b = triggerZone.bounds;
+        float zoneTop = b.max.y - zoneTopPadding;
+        float zoneBottom = b.min.y + zoneBottomPadding;
+        float z = arm.position.z;
+
+        float armAngle = (armIndex == 0) ? slamArmAngleLeft : slamArmAngleRight;
+
+        float desiredHoverY = target.position.y + hoverOffsetY;
+        float hoverY = Mathf.Clamp(desiredHoverY, zoneBottom, zoneTop);
+        Vector3 startPos = arm.position;
+        Vector3 hoverPos = new Vector3(target.position.x, hoverY, z);
+
+        float t = 0f;
+        while (t < slamRiseTime)
+        {
+            t += Time.deltaTime;
+            float p = t / slamRiseTime;
+            arm.position = Vector3.Lerp(startPos, hoverPos, p);
+            arm.rotation = Quaternion.Euler(0, 0, armAngle);
+            yield return null;
+        }
+
+        float h = 0f;
+        while (h < hoverDuration)
+        {
+            h += Time.deltaTime;
+            Vector3 follow = new Vector3(target.position.x, hoverY, z);
+            arm.position = Vector3.Lerp(arm.position, follow, Time.deltaTime * hoverFollowSpeed);
+            arm.rotation = Quaternion.Euler(0, 0, armAngle);
+            yield return null;
+        }
+
+        float hold = hoverHoldBeforeSlam;
+        while (hold > 0f)
+        {
+            hold -= Time.deltaTime;
+            arm.rotation = Quaternion.Euler(0, 0, armAngle);
+            yield return null;
+        }
+
+        Vector3 slamPos = new Vector3(arm.position.x, zoneBottom, z);
+        t = 0f;
+        Vector3 pre = arm.position;
+        while (t < slamDownTime)
+        {
+            t += Time.deltaTime;
+            float p = t / slamDownTime;
+            arm.position = Vector3.Lerp(pre, slamPos, p);
+            arm.rotation = Quaternion.Euler(0, 0, armAngle);
+            yield return null;
+        }
+
+        PlaySFX("BossArmSlam");
+        DoDamageToPlayerAt(arm.position, slamHitRadius, slamDamage);
+
+        t = 0f;
+        while (t < slamReturnTime)
+        {
+            t += Time.deltaTime;
+            float p = t / slamReturnTime;
+            arm.position = Vector3.Lerp(slamPos, originalPos, p);
+            arm.rotation = Quaternion.Slerp(arm.rotation, originalRot, p);
+            yield return null;
+        }
+
+        arm.SetParent(originalParent, true);
+        arm.position = originalPos;
+        arm.rotation = originalRot;
+        armsInAction.Remove(arm);
+
+        PlaySFX("BossArmMove");
+    }
+
+    IEnumerator HorizontalSweepAttack(Transform arm, Transform target, bool startFromLeft)
+    {
+        armsInAction.Add(arm);
+
+        Transform originalParent = arm.parent;
+        Vector3 originalPos = arm.position;
+        Quaternion originalRot = arm.rotation;
+        arm.SetParent(null, true);
+
+        PlaySFX("BossArmMove");
+
+        var b = triggerZone.bounds;
+        float leftX = b.min.x + g2_sidePadding;
+        float rightX = b.max.x - g2_sidePadding;
+        float zoneTop = b.max.y - zoneTopPadding;
+        float zoneBottom = b.min.y + zoneBottomPadding;
+        float z = arm.position.z;
+
+        float desiredY = target.position.y + g2_sweepYOffset;
+        float sweepY = Mathf.Clamp(desiredY, zoneBottom, zoneTop);
+
+        Vector3 startPos = startFromLeft ? new Vector3(leftX, sweepY, z) : new Vector3(rightX, sweepY, z);
+        Vector3 endPos = startFromLeft ? new Vector3(rightX, sweepY, z) : new Vector3(leftX, sweepY, z);
+
+        float t = 0f;
+        float moveTime = 0.25f;
+        Vector3 curStart = arm.position;
+        while (t < moveTime)
+        {
+            t += Time.deltaTime;
+            float p = t / moveTime;
+            arm.position = Vector3.Lerp(curStart, startPos, p);
+            yield return null;
+        }
+
+        float hold = g2_sweepHold;
+        while (hold > 0f)
+        {
+            hold -= Time.deltaTime;
+            yield return null;
+        }
+
+        PlaySFX("BossArmSweep");
+
+        float dist = Vector3.Distance(startPos, endPos);
+        float traveled = 0f;
+        while (traveled < dist)
+        {
+            float step = g2_sweepSpeed * Time.deltaTime;
+            traveled += step;
+            float p = Mathf.Clamp01(traveled / dist);
+            arm.position = Vector3.Lerp(startPos, endPos, p);
+
+            Collider2D hit = Physics2D.OverlapCircle(arm.position, g2_hitRadius, playerLayer);
+            if (hit != null)
+            {
+                var ph = hit.GetComponent<PlayerHealth>();
+                if (ph != null) ph.TakeHit(g2_damage);
+            }
+
+            yield return null;
+        }
+
+        t = 0f;
+        while (t < g2_returnTime)
+        {
+            t += Time.deltaTime;
+            float p = t / g2_returnTime;
+            arm.position = Vector3.Lerp(endPos, originalPos, p);
+            arm.rotation = Quaternion.Slerp(arm.rotation, originalRot, p);
+            yield return null;
+        }
+
+        arm.SetParent(originalParent, true);
+        arm.position = originalPos;
+        arm.rotation = originalRot;
+        armsInAction.Remove(arm);
+
+        PlaySFX("BossArmMove");
+    }
+
+    IEnumerator DiagonalSlamAttack(Transform arm, Transform target, bool fromLeft)
+    {
+        armsInAction.Add(arm);
+
+        Transform originalParent = arm.parent;
+        Vector3 originalPos = arm.position;
+        Quaternion originalRot = arm.rotation;
+        arm.SetParent(null, true);
+
+        PlaySFX("BossArmMove");
+
+        var b = triggerZone.bounds;
+        float zoneTop = b.max.y - zoneTopPadding;
+        float zoneBottom = b.min.y + zoneBottomPadding;
+        float z = arm.position.z;
+
+        float startX = target.position.x + (fromLeft ? -g3_offsetX : g3_offsetX);
+        float startY = Mathf.Clamp(target.position.y + g3_offsetY, zoneBottom, zoneTop);
+        Vector3 hover = new Vector3(startX, startY, z);
+
+        float armAngle = fromLeft ? g3_angleLeft : g3_angleRight;
+
+        float t = 0f;
+        Vector3 startPos = arm.position;
+        while (t < g3_riseTime)
+        {
+            t += Time.deltaTime;
+            float p = t / g3_riseTime;
+            arm.position = Vector3.Lerp(startPos, hover, p);
+            arm.rotation = Quaternion.Euler(0, 0, armAngle);
+            yield return null;
+        }
+
+        float ft = 0f;
+        while (ft < g3_followDuration)
+        {
+            ft += Time.deltaTime;
+
+            float fx = target.position.x + (fromLeft ? -g3_offsetX : g3_offsetX);
+            float fy = Mathf.Clamp(target.position.y + g3_offsetY, zoneBottom, zoneTop);
+            Vector3 follow = new Vector3(fx, fy, z);
+
+            arm.position = Vector3.Lerp(arm.position, follow, Time.deltaTime * g3_followSpeed);
+            arm.rotation = Quaternion.Euler(0, 0, armAngle);
+            yield return null;
+        }
+
+        Vector3 finalHover = arm.position;
+
+        float hold = g3_holdBeforeSlam;
+        while (hold > 0f)
+        {
+            hold -= Time.deltaTime;
+            arm.position = finalHover;
+            arm.rotation = Quaternion.Euler(0, 0, armAngle);
+            yield return null;
+        }
+
+        float verticalDrop = finalHover.y - zoneBottom;
+        float dx = fromLeft ? verticalDrop : -verticalDrop;
+        Vector3 slamTarget = new Vector3(finalHover.x + dx, zoneBottom, z);
+
+        t = 0f;
+        Vector3 pre = arm.position;
+        while (t < g3_slamTime)
+        {
+            t += Time.deltaTime;
+            float p = t / g3_slamTime;
+            arm.position = Vector3.Lerp(pre, slamTarget, p);
+            arm.rotation = Quaternion.Euler(0, 0, armAngle);
+            yield return null;
+        }
+
+        PlaySFX("BossArmSlam");
+        DoDamageToPlayerAt(arm.position, g3_hitRadius, g3_damage);
+
+        t = 0f;
+        while (t < g3_returnTime)
+        {
+            t += Time.deltaTime;
+            float p = t / g3_returnTime;
+            arm.position = Vector3.Lerp(slamTarget, originalPos, p);
+            arm.rotation = Quaternion.Slerp(arm.rotation, originalRot, p);
+            yield return null;
+        }
+
+        arm.SetParent(originalParent, true);
+        arm.position = originalPos;
+        arm.rotation = originalRot;
+        armsInAction.Remove(arm);
+
+        PlaySFX("BossArmMove");
+    }
+
+    void DoDamageToPlayerAt(Vector3 pos, float radius, int dmg)
+    {
+        Collider2D hit = Physics2D.OverlapCircle(pos, radius, playerLayer);
+        if (hit != null)
+        {
+            var ph = hit.GetComponent<PlayerHealth>();
+            if (ph != null) ph.TakeHit(dmg);
+        }
+    }
+
+    void PlaySFX(string name)
+    {
+        if (SoundManager.instance != null)
+            SoundManager.instance.PlaySFX(name);
+    }
+
+    void ToggleObjects(GameObject[] list, bool active)
+    {
+        if (list == null) return;
+        foreach (var go in list)
+        {
+            if (go != null)
+                go.SetActive(active);
+        }
+    }
+
+    public int GetRandomAliveArmIndex()
+    {
+        if (arms == null || armAlive == null) return -1;
+        List<int> list = new List<int>();
+        for (int i = 0; i < arms.Length; i++)
+            if (IsArmStillAlive(i)) list.Add(i);
+        if (list.Count == 0) return -1;
+        return list[UnityEngine.Random.Range(0, list.Count)];
+    }
+
+    public Transform GetArmTransform(int index)
+    {
+        if (arms == null) return null;
+        if (index < 0 || index >= arms.Length) return null;
+        return arms[index];
+    }
+
+    public void DestroyArm(int index)
+    {
+        if (arms == null || armAlive == null) return;
+        if (index < 0 || index >= arms.Length) return;
+        if (!armAlive[index]) return;
+
+        armAlive[index] = false;
+
+        if (armsInAction.Contains(arms[index]))
+            armsInAction.Remove(arms[index]);
+
+        if (disableArmObjectOnDestroy && arms[index] != null)
+            arms[index].gameObject.SetActive(false);
+
+        OnBossArmDestroyed?.Invoke();
+
+        if (CountAliveArms() == 0)
+            Die();
+    }
+
+    bool IsArmStillAlive(int index)
+    {
+        if (armAlive == null) return false;
+        if (index < 0 || index >= armAlive.Length) return false;
+        if (!armAlive[index]) return false;
+        if (arms[index] == null) return false;
+        return true;
+    }
+
+    int CountAliveArms()
+    {
+        if (armAlive == null) return 0;
+        int c = 0;
+        for (int i = 0; i < armAlive.Length; i++)
+            if (armAlive[i]) c++;
+        return c;
+    }
+
+    void Die()
     {
         if (isDead) return;
         isDead = true;
+        aiRunning = false;
+        PlaySFX("BossDie");
 
-        StopAI();
-
-        if (animator != null)
+        if (switchBackOnDeath)
         {
-            if (!string.IsNullOrEmpty(deathTriggerName))
-                animator.SetTrigger(deathTriggerName);
-            if (setDeadBool && !string.IsNullOrEmpty(deadBoolName))
-                animator.SetBool(deadBoolName, true);
+            SwitchToMainCamera();
         }
 
-        foreach (var go in objectsToEnableOnDeath) if (go) go.SetActive(true);
-        foreach (var go in objectsToDisableOnDeath) if (go) go.SetActive(false);
+        ToggleObjects(activateOnDeath, true);
+        ToggleObjects(deactivateOnDeath, false);
 
-        onDeath?.Invoke();
-
-        var cols = GetComponentsInChildren<Collider2D>(true);
-        foreach (var c in cols) c.enabled = false;
-
-        if (destroyAfterDeath) Destroy(gameObject, Mathf.Max(0f, destroyDelay));
-        else enabled = false;
+        OnBossDied?.Invoke();
     }
 
-    // =======================
-    //        GIZMOS
-    // =======================
-    private void OnDrawGizmosSelected()
+    public string GetId() => bossId;
+
+    public BossSaveEntry BuildSave()
     {
-        if (roomBounds != null)
+        var entry = new BossSaveEntry();
+        entry.id = bossId;
+        entry.isDead = isDead;
+
+        if (isDead)
         {
-            Gizmos.color = new Color(0f, 1f, 1f, 0.35f);
-            Gizmos.DrawCube(roomBounds.bounds.center, roomBounds.bounds.size);
-
-            Bounds b = roomBounds.bounds;
-            float xL = Mathf.Lerp(b.min.x, b.max.x, leftSplit);
-            float xR = Mathf.Lerp(b.min.x, b.max.x, rightSplit);
-
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawLine(new Vector3(xL, b.min.y, 0), new Vector3(xL, b.max.y, 0));
-            Gizmos.DrawLine(new Vector3(xR, b.min.y, 0), new Vector3(xR, b.max.y, 0));
+            entry.activateOnStartStates = CaptureStates(activateOnStart);
+            entry.deactivateOnStartStates = CaptureStates(deactivateOnStart);
+            entry.activateOnDeathStates = CaptureStates(activateOnDeath);
+            entry.deactivateOnDeathStates = CaptureStates(deactivateOnDeath);
         }
 
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere((Vector2)transform.position + hitOffset, hitRadius);
+        return entry;
+    }
 
-        Gizmos.color = Color.green;
-        Gizmos.DrawLine(new Vector3(-999f, groundY, 0), new Vector3(999f, groundY, 0));
+    public void ApplyBossSave(BossSaveEntry entry)
+    {
+        if (entry != null && entry.isDead)
+        {
+            StopAllCoroutines();
+            isDead = true;
+            aiRunning = false;
+            hasTriggered = false;
+            suppressAutoStartOnce = true;
+
+            ApplyStates(activateOnStart, entry.activateOnStartStates);
+            ApplyStates(deactivateOnStart, entry.deactivateOnStartStates);
+            ApplyStates(activateOnDeath, entry.activateOnDeathStates);
+            ApplyStates(deactivateOnDeath, entry.deactivateOnDeathStates);
+
+            SwitchToMainCamera();
+            return;
+        }
+
+        ResetToPreBossForLoad();
+    }
+
+    bool[] CaptureStates(GameObject[] list)
+    {
+        if (list == null) return null;
+        bool[] r = new bool[list.Length];
+        for (int i = 0; i < list.Length; i++)
+            r[i] = list[i] != null && list[i].activeSelf;
+        return r;
+    }
+
+    void ApplyStates(GameObject[] list, bool[] states)
+    {
+        if (list == null || states == null) return;
+        for (int i = 0; i < list.Length && i < states.Length; i++)
+        {
+            if (list[i] != null)
+                list[i].SetActive(states[i]);
+        }
+    }
+
+    void SwitchToBossCamera()
+    {
+        if (mainCamera != null) mainCamera.gameObject.SetActive(false);
+        if (bossCamera != null) bossCamera.gameObject.SetActive(true);
+
+        if (switchUICanvasWithCamera && uiCanvas != null && bossCamera != null)
+        {
+            uiCanvas.worldCamera = bossCamera;
+            uiCanvas.planeDistance = bossCanvasPlaneDistance;
+        }
+    }
+
+    void SwitchToMainCamera()
+    {
+        if (bossCamera != null) bossCamera.gameObject.SetActive(false);
+        if (mainCamera != null) mainCamera.gameObject.SetActive(true);
+
+        if (switchUICanvasWithCamera && uiCanvas != null && mainCamera != null)
+        {
+            uiCanvas.worldCamera = mainCamera;
+            uiCanvas.planeDistance = mainCanvasPlaneDistance;
+        }
     }
 }
-
-public interface IDamageable { void TakeDamage(int amount); }

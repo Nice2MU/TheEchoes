@@ -31,9 +31,12 @@ public class RambleAbility : MonoBehaviour, AbilityManager
     private float dashDelayTimer = 0f;
     private float dashDelayDuration = 0.45f;
     private bool dashQueued = false;
+
     private bool isChargingJump = false;
     private float chargeTimer = 0f;
+
     private bool isGrounded = false;
+    private bool wasGrounded = false;
 
     private PlayerControl originalControl;
     public DashManager dashManager;
@@ -60,6 +63,7 @@ public class RambleAbility : MonoBehaviour, AbilityManager
 
         isDashing = false;
         dashQueued = false;
+
         isChargingJump = false;
         chargeTimer = 0f;
 
@@ -92,11 +96,7 @@ public class RambleAbility : MonoBehaviour, AbilityManager
         animator = player.GetComponent<Animator>();
 
         originalControl = player.GetComponent<PlayerControl>();
-
-        if (originalControl != null)
-        {
-            originalControl.enabled = false;
-        }
+        if (originalControl != null) originalControl.enabled = false;
 
         if (groundCheck == null)
             groundCheck = player.transform.Find("GroundCheck");
@@ -119,13 +119,12 @@ public class RambleAbility : MonoBehaviour, AbilityManager
     public void OnAbilityExit(GameObject playerObj)
     {
         isDashing = false;
+
         isChargingJump = false;
         chargeTimer = 0f;
 
         if (originalControl != null)
-        {
             originalControl.enabled = true;
-        }
 
         moveAction.action.Disable();
         jumpAction.action.Disable();
@@ -159,6 +158,8 @@ public class RambleAbility : MonoBehaviour, AbilityManager
 
     void GroundCheck()
     {
+        wasGrounded = isGrounded;
+
         if (groundCheck != null)
         {
             isGrounded = Physics2D.OverlapCircle(groundCheck.position, 0.1f, groundLayer);
@@ -169,7 +170,6 @@ public class RambleAbility : MonoBehaviour, AbilityManager
                 SoundManager.instance.PlaySFX("FallRamble");
                 hasPlayedFall = true;
             }
-
             else if (!isGrounded)
             {
                 hasPlayedFall = false;
@@ -206,14 +206,12 @@ public class RambleAbility : MonoBehaviour, AbilityManager
                     audioSource.pitch = isChargingJump ? 0.8f : 1f;
                     audioSource.Play();
                 }
-
                 else
                 {
                     audioSource.pitch = isChargingJump ? 0.8f : 1f;
                 }
             }
         }
-
         else
         {
             if (audioSource.isPlaying && audioSource.clip == SoundManager.instance.walkramble)
@@ -287,7 +285,6 @@ public class RambleAbility : MonoBehaviour, AbilityManager
                 audioSource.Play();
             }
         }
-
         else
         {
             dashManager.Dash(false);
@@ -303,9 +300,31 @@ public class RambleAbility : MonoBehaviour, AbilityManager
             return;
         }
 
-        if (jumpAction.action.IsPressed() && isGrounded)
+        if (!isGrounded)
+        {
+            if (isChargingJump || chargeTimer > 0f)
+            {
+                isChargingJump = false;
+                chargeTimer = 0f;
+                if (jumpChargeBar != null)
+                {
+                    jumpChargeBar.value = 0f;
+                    jumpChargeBar.gameObject.SetActive(false);
+                }
+            }
+        }
+
+        if (isGrounded && !wasGrounded && jumpAction.action.IsPressed())
         {
             isChargingJump = true;
+            chargeTimer = 0f;
+        }
+
+        if (jumpAction.action.IsPressed() && isGrounded)
+        {
+            if (!isChargingJump)
+                isChargingJump = true;
+
             chargeTimer += Time.deltaTime / chargeTime;
             chargeTimer = Mathf.Clamp01(chargeTimer);
         }
@@ -319,11 +338,16 @@ public class RambleAbility : MonoBehaviour, AbilityManager
             rb.linearVelocity = vel;
 
             animator.SetTrigger("jump");
-
             SoundManager.instance.PlaySFX("JumpRamble");
 
             isChargingJump = false;
             chargeTimer = 0f;
+
+            if (jumpChargeBar != null)
+            {
+                jumpChargeBar.value = 0f;
+                jumpChargeBar.gameObject.SetActive(false);
+            }
         }
     }
 
@@ -331,12 +355,11 @@ public class RambleAbility : MonoBehaviour, AbilityManager
     {
         if (jumpChargeBar == null) return;
 
-        if (isChargingJump)
+        if (isChargingJump && isGrounded)
         {
             jumpChargeBar.gameObject.SetActive(true);
             jumpChargeBar.value = chargeTimer;
         }
-
         else
         {
             jumpChargeBar.value = 0f;

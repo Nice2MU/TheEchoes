@@ -11,7 +11,7 @@ public class VolumeManager : MonoBehaviour
     [Range(0f, 1f)] public float sfxVolume = 1f;
     [Range(0f, 1f)] public float musicVolume = 1f;
 
-    [Header("Optional UI Sliders (assign if you have them)")]
+    [Header("Optional UI Sliders")]
     [SerializeField] private Slider masterVolumeSlider;
     [SerializeField] private Slider sfxVolumeSlider;
     [SerializeField] private Slider musicVolumeSlider;

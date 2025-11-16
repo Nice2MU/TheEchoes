@@ -34,10 +34,7 @@ public class PlayerControl : MonoBehaviour
 
     public bool canMove = true;
 
-    private float walkTime = 0f;
-    private bool isWalking = false;
-
-    [Header("Slime Movement")]
+    [Header("Slime Movement (unused)")]
     public float walkDelay = 0.35f;
     public bool enableWalkingEffect = true;
 
@@ -59,6 +56,12 @@ public class PlayerControl : MonoBehaviour
     private float chargeDuration = 0f;
     private bool isChargingJump = false;
     private bool hasPlayedRollSFX = false;
+    public string rollTriggerTag = "RollTrigger";
+    public float rollTriggerTimeWindow = 3f;
+
+    private bool hasRollTrigger = false;
+    private float rollTriggerTimer = 0f;
+    private bool isInsideSlideZone = false;
 
     [Header("Climbing Settings")]
     public float jumpForce = 6f;
@@ -84,49 +87,33 @@ public class PlayerControl : MonoBehaviour
     private bool jumpReleased = false;
     private bool jumpDownThisFrame = false;
 
-    // ---------- Wall Slide / Wall Jump ----------
-    [Header("Wall Jump")]
-    public Transform wallCheck;
-    public LayerMask wallLayer;
+    [Header("Ceiling Stick")]
+    [SerializeField] private float ceilingStickRadius = 0.22f;
+    [SerializeField] private float ceilingCrawlSpeed = 1.6f;
+    [SerializeField] private float ceilingCrawlAccel = 20f;
+    [SerializeField] private float ceilingSnapMaxDistance = 0.35f;
+    [SerializeField] private float ceilingSnapEpsilon = 0.01f;
 
-    // เร่งความเร็วไหลให้ชัด
-    public float wallSlideSpeed = 10f;        // ความเร็วดิ่งลงเป้าหมาย
-    public float wallJumpTime = 0.2f;         // หน้าต่างอนุญาตวอลจัมป์
-    public float wallJumpDuration = 0.4f;     // ระยะเวลาล็อกบางอินพุตหลังวอลจัมป์
+    [Header("Jump Tuning")]
+    [Range(0f, 3f)] public float jumpForwardMultiplier = 1.6f;
 
-    private bool isWallSliding = false;
-    private bool isWallJumping = false;
-    private float wallJumpCounter = 0f;
+    public float airLaunchHoldTime = 0.15f;
+    private float airLaunchTimer = 0f;
 
-    [Header("Wall Slide Tuning")]
-    [SerializeField] private bool requireInputTowardWall = false; // ต้องกดเข้าหากำแพงไหม
-    [SerializeField] private float slideStartKick = -2f;          // เตะความเร็วลงให้เริ่มไหลไว
-    [SerializeField] private float wallSlideAccel = 60f;          // อัตราเร่งลงสู่ความเร็วเป้าหมาย
-    [SerializeField] private float wallGravityMultiplier = 1.6f;  // คูณแรงโน้มถ่วงตอนสไลด์
+    [Header("Input")]
+    public float inputDeadzone = 0.02f;
 
-    [Header("Wall Slide Delay")]
-    [SerializeField] private float wallSlideDelay = 0.20f;        // เวลาเกาะก่อนเริ่มไหล
-    private float wallSlideDelayTimer = 0f;
-    private int _lastWallSide = 0; // -1 ซ้าย, +1 ขวา, 0 ไม่มี
-    private bool _isWallHang = false;
+    private bool _externalMoveLock = false;
 
-    [Header("Wall Jump Charge")]
-    [SerializeField] private float wallMinHorizSpeed = 4f;   // แนวนอนขั้นต่ำ
-    [SerializeField] private float wallMaxHorizSpeed = 10f;  // แนวนอนสูงสุด
-    [SerializeField] private float wallMinVerticalPower = 5f;  // แนวตั้งขั้นต่ำ
-    [SerializeField] private float wallMaxVerticalPower = 14f; // แนวตั้งสูงสุด
-    private float wallJumpCharge = 0f;  // 0..1
-    private bool wallCharging = false;
+    [Header("Charge Jump Cooldown")]
+    public float chargeJumpCooldown = 0.5f;
+    private float chargeJumpCDTimer = 0f;
 
-    [Header("Wall Probe (left/right)")]
-    [SerializeField] private float wallCheckSideOffset = 0.12f; // ระยะเลื่อนซ้าย/ขวาจาก wallCheck
-    [SerializeField] private float wallCheckProbeRadius = 0.1f; // รัศมีวงตรวจชนซ้าย/ขวา
+    public bool IsSticking => isSticking;
+    public bool IsOnVine => isOnVine;
+    public bool CanMove => canMove;
 
-    // ---------- WallCheck follow facing ----------
-    [Header("Wall Check Follow Facing")]
-    [SerializeField] private bool mirrorWallCheckByFacing = true;
-    [SerializeField] private Vector2 wallCheckLocalOffset = new Vector2(0.2f, 0f);
-    private Vector3 _wallCheckInitialLocalPos;
+    public void SetExternalMovementLock(bool active) => _externalMoveLock = active;
 
     void Awake()
     {
@@ -160,7 +147,7 @@ public class PlayerControl : MonoBehaviour
         playerCollider = GetComponent<Collider2D>();
 
         joint = GetComponent<DistanceJoint2D>();
-        joint.enabled = false;
+        if (joint != null) joint.enabled = false;
 
         originalDrag = dragMultiplier;
         rb.collisionDetectionMode = CollisionDetectionMode2D.Discrete;
@@ -172,14 +159,26 @@ public class PlayerControl : MonoBehaviour
             jumpChargeBar.value = 0f;
             jumpChargeBar.gameObject.SetActive(false);
         }
-
-        if (wallCheck != null)
-            _wallCheckInitialLocalPos = wallCheck.localPosition;
     }
 
     void Update()
     {
-        if (!canMove) { jumpDownThisFrame = false; jumpReleased = false; return; }
+        if (!canMove)
+        {
+            jumpDownThisFrame = false;
+            jumpReleased = false;
+            return;
+        }
+
+        if (chargeJumpCDTimer > 0f)
+            chargeJumpCDTimer -= Time.deltaTime;
+
+        if (hasRollTrigger)
+        {
+            rollTriggerTimer -= Time.deltaTime;
+            if (rollTriggerTimer <= 0f)
+                hasRollTrigger = false;
+        }
 
         float moveX = moveInput.x;
 
@@ -197,168 +196,24 @@ public class PlayerControl : MonoBehaviour
         if (isGrounded && !wasGrounded)
             SoundManager.instance?.PlaySFX("Fall");
 
-        // ---------- Wall Slide / Wall Jump: Detect & Handle (delay -> fast slide -> away jump) ----------
-        int wallSide = GetWallSide();          // -1 = wall left, +1 = wall right, 0 = none
-        bool isWalled = wallSide != 0;
-
-        // ต้องมีอินพุตเข้าหากำแพงหรือไม่
-        bool allowByInput = !requireInputTowardWall || Mathf.Abs(moveX) > 0.01f;
-
-        // เงื่อนไขไม่ได้สไลด์กำแพง
-        if (!isWalled || isGrounded || isSticking || isOnVine || !allowByInput)
+        if (Mathf.Abs(moveX) > inputDeadzone)
         {
-            isWallSliding = false;
-            _isWallHang = false;
-            wallJumpCounter -= Time.deltaTime;
-
-            // คืนค่า default
-            rb.linearDamping = originalDrag;
-            rb.gravityScale = 1f;
-        }
-        else
-        {
-            // แตะกำแพงครั้งแรก หรือสลับด้าน -> รีสตาร์ท delay
-            if (wallSide != _lastWallSide || (!_isWallHang && !isWallSliding))
-            {
-                wallSlideDelayTimer = wallSlideDelay;
-            }
-
-            // เปิดหน้าต่างวอลจัมป์ + ชาร์จตอนเกาะกำแพง
-            wallJumpCounter = wallJumpTime;
-            CancelInvoke(nameof(StopWallJumping));
-
-            if (jumpHeld)
-            {
-                wallCharging = true;
-                wallJumpCharge += Time.deltaTime / chargeTime;
-                wallJumpCharge = Mathf.Clamp01(wallJumpCharge);
-            }
-
-            // ระยะ "แขวน" (หน่วงก่อนเริ่มไหล)
-            if (wallSlideDelayTimer > 0f)
-            {
-                _isWallHang = true;
-                isWallSliding = false;
-
-                wallSlideDelayTimer -= Time.deltaTime;
-
-                // ค้างนิ่ง ๆ ขณะหน่วง
-                rb.gravityScale = 0f;
-                rb.linearDamping = 0f;
-                rb.linearVelocity = new Vector2(rb.linearVelocity.x * 0.9f, Mathf.Min(0f, rb.linearVelocity.y));
-            }
-            else
-            {
-                // เริ่มไหลจริง
-                _isWallHang = false;
-                isWallSliding = true;
-
-                rb.gravityScale = wallGravityMultiplier;
-                rb.linearDamping = 0f;
-
-                float vy = rb.linearVelocity.y;
-                if (vy > slideStartKick) vy = slideStartKick; // ให้ติดลบทันทีถ้ายังขึ้น/นิ่ง
-                vy = Mathf.MoveTowards(vy, -wallSlideSpeed, wallSlideAccel * Time.deltaTime);
-                rb.linearVelocity = new Vector2(rb.linearVelocity.x, vy);
-            }
-        }
-
-        // ปล่อยปุ่มกระโดดภายในหน้าต่าง -> วอลจัมป์ "ออกจากกำแพงเสมอ"
-        if (jumpReleased && wallJumpCounter > 0f && isWalled)
-        {
-            isWallJumping = true;
-            wallJumpCounter = 0f;
-
-            float dirAway = -Mathf.Sign(wallSide); // +1(กำแพงขวา)=>-1 ออกซ้าย, -1(กำแพงซ้าย)=>+1 ออกขวา
-
-            float t = Mathf.Clamp01(wallJumpCharge);
-            float vx = Mathf.Lerp(wallMinHorizSpeed, wallMaxHorizSpeed, t) * dirAway;
-            float vy2 = Mathf.Lerp(wallMinVerticalPower, wallMaxVerticalPower, t);
-
-            rb.linearVelocity = new Vector2(vx, vy2);
-
             if (spriteRenderer != null)
-                spriteRenderer.flipX = vx < 0f;
-
-            animator?.SetTrigger("jump");
-            SoundManager.instance?.PlaySFX("Jump");
-
-            wallJumpCharge = 0f;
-            wallCharging = false;
-
-            Invoke(nameof(StopWallJumping), wallJumpDuration);
+                spriteRenderer.flipX = moveX < 0;
         }
-        // --------------------------------------------------------------------
 
-        // ====== โค้ดเดิมอื่น ๆ คงไว้ ======
-        if (isGrounded)
+        animator.SetBool("isGrounded", isGrounded);
+
+        bool canRollNow = hasRollTrigger && (rollTriggerTimer > 0f);
+        if (isInsideSlideZone && canRollNow)
         {
-            if (moveX != 0 && !jumpHeld && !isSliding)
-            {
-                if (enableWalkingEffect)
-                {
-                    walkTime += Time.deltaTime;
-                    if (walkTime >= walkDelay)
-                    {
-                        isWalking = !isWalking;
-                        walkTime = 0f;
-
-                        if (isWalking && !hasPlayedWalkSFX)
-                        {
-                            SoundManager.instance?.PlaySFX("Walk");
-                            hasPlayedWalkSFX = true;
-                            Invoke(nameof(ResetWalkSFX), 0.3f);
-                        }
-                    }
-                }
-                else
-                {
-                    isWalking = true;
-
-                    if (!hasPlayedWalkSFX)
-                    {
-                        SoundManager.instance?.PlaySFX("Walk");
-                        hasPlayedWalkSFX = true;
-                        Invoke(nameof(ResetWalkSFX), 0.3f);
-                    }
-                }
-            }
-            else
-            {
-                isWalking = false;
-                walkTime = 0f;
-            }
+            isSliding = true;
         }
         else
         {
-            isWalking = true;
+            if (!isInsideSlideZone || !canRollNow)
+                isSliding = false;
         }
-
-        // กันการทับความเร็วช่วงกำลังกระโดดกำแพง
-        if (!isSticking && isWalking && !isSliding && !isWallJumping)
-        {
-            if (!jumpHeld || !isGrounded)
-                rb.linearVelocity = new Vector2(moveX * speed, rb.linearVelocity.y);
-            else
-                rb.linearVelocity = new Vector2(0, rb.linearVelocity.y);
-        }
-        else if (isWalking && !isSliding && !isWallJumping)
-        {
-            rb.linearVelocity = new Vector2(moveX * speed, 0f);
-
-            if (!playerCollider.IsTouchingLayers(ceilingLayer))
-            {
-                isSticking = false;
-                rb.gravityScale = 1f;
-                animator.SetBool("stick", false);
-            }
-        }
-
-        if (moveX != 0)
-            spriteRenderer.flipX = moveX < 0;
-
-        animator.SetBool("walk", moveX != 0);
-        animator.SetBool("isGrounded", isGrounded);
 
         if (isSliding)
         {
@@ -366,8 +221,7 @@ public class PlayerControl : MonoBehaviour
             currentSpeed = Mathf.MoveTowards(currentSpeed, slideSpeed, smoothTime * Time.deltaTime * slideSpeed);
             currentSpeed = Mathf.Min(currentSpeed, maxSpeed);
 
-            if (!isWallJumping)
-                rb.linearVelocity = new Vector2(currentSpeed * Mathf.Sign(transform.localScale.x), rb.linearVelocity.y);
+            rb.linearVelocity = new Vector2(currentSpeed * Mathf.Sign(transform.localScale.x), rb.linearVelocity.y);
 
             animator.SetBool("isSliding", true);
 
@@ -378,17 +232,20 @@ public class PlayerControl : MonoBehaviour
                 Invoke(nameof(ResetRollSFX), 0.4f);
             }
 
-            if (jumpHeld && isGrounded)
+            if (jumpHeld && isGrounded && chargeJumpCDTimer <= 0f)
             {
+                if (!isChargingJump)
+                {
+                    isChargingJump = true;
+                    animator.SetBool("isChargingJump", true);
+                }
+
                 chargeDuration += Time.deltaTime * chargeTime;
                 chargeDuration = Mathf.Min(chargeDuration, 1f);
-                isChargingJump = true;
-                animator.SetBool("isChargingJump", true);
 
-                if (jumpChargeBar != null)
-                    jumpChargeBar.value = chargeDuration;
+                if (jumpChargeBar != null) jumpChargeBar.value = chargeDuration;
             }
-            else if (jumpDownThisFrame && isGrounded)
+            else if (jumpDownThisFrame && isGrounded && chargeJumpCDTimer <= 0f)
             {
                 chargeDuration = 0f;
                 isChargingJump = true;
@@ -401,60 +258,118 @@ public class PlayerControl : MonoBehaviour
                 rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpPower);
                 animator.SetTrigger("jump");
 
-                if (chargeDuration <= 0.3f)
-                    SoundManager.instance?.PlaySFX("SJump");
-                else
-                    SoundManager.instance?.PlaySFX("Jump");
+                if (chargeDuration <= 0.3f) SoundManager.instance?.PlaySFX("SJump");
+                else SoundManager.instance?.PlaySFX("Jump");
 
                 chargeDuration = 0f;
                 isChargingJump = false;
                 animator.SetBool("isChargingJump", false);
+                if (jumpChargeBar != null) jumpChargeBar.value = 0f;
 
-                if (jumpChargeBar != null)
-                    jumpChargeBar.value = 0f;
+                chargeJumpCDTimer = chargeJumpCooldown;
             }
         }
         else
         {
-            if (!isWallSliding) rb.linearDamping = originalDrag;
+            if (!isSticking)
+                rb.linearDamping = originalDrag;
 
             animator.SetBool("isSliding", false);
             currentSpeed = 0f;
 
-            if (jumpHeld && isGrounded && !isSticking)
+            if (isGrounded && !wasGrounded && jumpHeld && !isSticking && chargeJumpCDTimer <= 0f)
             {
+                isChargingJump = true;
+                animator.SetBool("isChargingJump", true);
+            }
+
+            if (jumpHeld && isGrounded && !isSticking && chargeJumpCDTimer <= 0f)
+            {
+                if (!isChargingJump)
+                {
+                    isChargingJump = true;
+                    animator.SetBool("isChargingJump", true);
+                }
+
                 jumpCharge += Time.deltaTime / chargeTime;
                 jumpCharge = Mathf.Clamp(jumpCharge, 0f, 1f);
 
-                if (jumpChargeBar != null) jumpChargeBar.value = jumpCharge;
+                if (jumpChargeBar != null)
+                {
+                    jumpChargeBar.value = jumpCharge;
+                    jumpChargeBar.gameObject.SetActive(true);
+                }
             }
 
-            if (jumpReleased && isGrounded && !isSticking)
+            if (jumpReleased && isGrounded && !isSticking && isChargingJump)
             {
                 float jumpPower = Mathf.Lerp(minJumpForce, maxJumpForce, jumpCharge);
-                rb.linearVelocity = new Vector2(moveX * speed, jumpPower);
+                float vx = Mathf.Abs(moveX) >= inputDeadzone ? moveX * speed * jumpForwardMultiplier : 0f;
+
+                rb.linearVelocity = new Vector2(vx, jumpPower);
+                airLaunchTimer = airLaunchHoldTime;
+
                 animator.SetTrigger("jump");
 
-                if (jumpCharge <= 0.3f)
-                    SoundManager.instance?.PlaySFX("SJump");
-                else
-                    SoundManager.instance?.PlaySFX("Jump");
+                if (jumpCharge <= 0.3f) SoundManager.instance?.PlaySFX("SJump");
+                else SoundManager.instance?.PlaySFX("Jump");
 
-                jumpCharge = 0;
+                jumpCharge = 0f;
+                if (jumpChargeBar != null) jumpChargeBar.value = 0f;
 
-                if (jumpChargeBar != null) jumpChargeBar.value = 0;
+                isChargingJump = false;
+                animator.SetBool("isChargingJump", false);
+
+                chargeJumpCDTimer = chargeJumpCooldown;
+            }
+
+            if (!jumpHeld && isGrounded && !isSticking && chargeJumpCDTimer > 0f)
+            {
+                isChargingJump = false;
+                if (jumpChargeBar != null) jumpChargeBar.gameObject.SetActive(false);
+            }
+            else if (jumpDownThisFrame && isGrounded && !isSticking && chargeJumpCDTimer <= 0f)
+            {
+                isChargingJump = true;
+                animator.SetBool("isChargingJump", true);
             }
         }
 
-        if (!isSticking && !isGrounded && playerCollider.IsTouchingLayers(ceilingLayer) && stickCooldownTimer <= 0f)
+        bool ceilingDetected = Physics2D.OverlapCircle(ceilingCheck.position, ceilingStickRadius, ceilingLayer);
+
+        if (!isSticking && !isGrounded && ceilingDetected && stickCooldownTimer <= 0f)
         {
             isSticking = true;
-            rb.linearVelocity = Vector2.zero;
             rb.gravityScale = 0f;
+            rb.linearDamping = 0f;
+            rb.linearVelocity = new Vector2(0f, 0f);
             animator.SetBool("stick", true);
+
+            SnapUpToCeilingImmediate();
+        }
+        else if (isSticking)
+        {
+            if (ceilingDetected)
+            {
+                SnapUpToCeilingImmediate();
+
+                float targetX = moveInput.x * ceilingCrawlSpeed;
+                float newVX = Mathf.MoveTowards(rb.linearVelocity.x, targetX, ceilingCrawlAccel * Time.deltaTime);
+                rb.gravityScale = 0f;
+                rb.linearDamping = 0f;
+                rb.linearVelocity = new Vector2(newVX, 0f);
+            }
+            else
+            {
+                isSticking = false;
+                rb.gravityScale = 1f;
+                rb.linearDamping = originalDrag;
+                animator.SetBool("stick", false);
+                stickCooldownTimer = stickCooldown;
+            }
         }
 
-        if (isSticking && moveX != 0)
+        if (isSticking && Mathf.Abs(moveX) > inputDeadzone)
         {
             if (Physics2D.OverlapCircle(ceilingCheck.position, 0.1f, ceilingLayer) && !hasPlayedClimbSFX)
             {
@@ -468,6 +383,7 @@ public class PlayerControl : MonoBehaviour
         {
             isSticking = false;
             rb.gravityScale = 1f;
+            rb.linearDamping = originalDrag;
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0);
             animator.SetBool("stick", false);
 
@@ -480,6 +396,9 @@ public class PlayerControl : MonoBehaviour
         if (stickCooldownTimer > 0f)
             stickCooldownTimer -= Time.deltaTime;
 
+        if (airLaunchTimer > 0f)
+            airLaunchTimer -= Time.deltaTime;
+
         if (isOnVine)
         {
             HandleClimbInput();
@@ -490,43 +409,55 @@ public class PlayerControl : MonoBehaviour
             }
         }
 
-        // ---- แสดงแถบชาร์จ: รวมโหมดกำแพงด้วย ----
         if (jumpChargeBar != null)
         {
-            bool showBar = (isGrounded && (jumpHeld || isChargingJump)) && !isSticking;
-
-            if ((isWallSliding || _isWallHang) && (jumpHeld || wallCharging)) showBar = true;
-
+            bool showBar = (chargeJumpCDTimer <= 0f) && (isGrounded && (jumpHeld || isChargingJump)) && !isSticking;
             jumpChargeBar.gameObject.SetActive(showBar);
-
             if (showBar)
             {
-                float uiProgress = (isWallSliding || _isWallHang) ? wallJumpCharge : jumpCharge;
-                jumpChargeBar.value = uiProgress;
+                jumpChargeBar.value = isSliding ? chargeDuration : jumpCharge;
             }
-            else
+            else if (chargeJumpCDTimer > 0f)
             {
                 jumpChargeBar.value = 0f;
             }
         }
 
+        if (!isGrounded && !isSticking && !isSliding)
+        {
+            if (isChargingJump || jumpCharge > 0f || chargeDuration > 0f)
+            {
+                isChargingJump = false;
+                jumpCharge = 0f;
+                chargeDuration = 0f;
+                animator.SetBool("isChargingJump", false);
+
+                if (jumpChargeBar != null)
+                {
+                    jumpChargeBar.value = 0f;
+                    jumpChargeBar.gameObject.SetActive(false);
+                }
+            }
+        }
+
         jumpDownThisFrame = false;
         jumpReleased = false;
-
-        // เก็บด้านกำแพงล่าสุดเพื่อใช้กับ delay
-        _lastWallSide = wallSide;
-    }
-
-    void LateUpdate()
-    {
-        SyncWallCheckToFacing();
     }
 
     private void OnTriggerEnter2D(Collider2D other)
     {
+        if (other.CompareTag(rollTriggerTag))
+        {
+            hasRollTrigger = true;
+            rollTriggerTimer = rollTriggerTimeWindow;
+
+            if (isInsideSlideZone)
+                isSliding = true;
+        }
+
         if (other.CompareTag(slideTag))
         {
-            isSliding = true;
+            isInsideSlideZone = true;
         }
 
         if (canGrabVine && other.CompareTag("Grab"))
@@ -534,6 +465,7 @@ public class PlayerControl : MonoBehaviour
             grabZone = other.transform;
             vineRigidbody = grabZone.GetComponentInParent<Rigidbody2D>();
 
+            if (joint == null) joint = GetComponent<DistanceJoint2D>();
             joint.connectedBody = vineRigidbody;
             joint.autoConfigureConnectedAnchor = false;
             joint.autoConfigureDistance = false;
@@ -550,7 +482,7 @@ public class PlayerControl : MonoBehaviour
             joint.enabled = true;
             isOnVine = true;
 
-            SoundManager.instance.PlaySFX("Grab");
+            SoundManager.instance?.PlaySFX("Grab");
         }
     }
 
@@ -558,6 +490,7 @@ public class PlayerControl : MonoBehaviour
     {
         if (other.CompareTag(slideTag))
         {
+            isInsideSlideZone = false;
             isSliding = false;
         }
     }
@@ -578,7 +511,7 @@ public class PlayerControl : MonoBehaviour
 
             if (!isClimbingSoundPlaying)
             {
-                SoundManager.instance.PlaySFX("Climb");
+                SoundManager.instance?.PlaySFX("Climb");
                 isClimbingSoundPlaying = true;
             }
         }
@@ -602,9 +535,31 @@ public class PlayerControl : MonoBehaviour
 
         rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0);
 
-        SoundManager.instance.PlaySFX("Jump");
+        SoundManager.instance?.PlaySFX("Jump");
 
         rb.AddForce(new Vector2(0, jumpForce), ForceMode2D.Impulse);
+    }
+
+    public void ForceDetachFromVine(bool addJumpImpulse = false)
+    {
+        if (!isOnVine || joint == null) return;
+
+        joint.enabled = false;
+        isOnVine = false;
+        grabZone = null;
+        vineRigidbody = null;
+
+        StartCoroutine(VineGrabCooldownRoutine());
+
+        if (rb != null)
+        {
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
+            if (addJumpImpulse)
+            {
+                SoundManager.instance?.PlaySFX("Jump");
+                rb.AddForce(new Vector2(0f, jumpForce), ForceMode2D.Impulse);
+            }
+        }
     }
 
     private IEnumerator VineGrabCooldownRoutine()
@@ -618,46 +573,35 @@ public class PlayerControl : MonoBehaviour
     private void ResetClimbSFX() => hasPlayedClimbSFX = false;
     private void ResetRollSFX() => hasPlayedRollSFX = false;
 
-    // ---------- Wall helpers ----------
-    private bool IsWalled()
+    private void SnapUpToCeilingImmediate()
     {
-        if (wallCheck == null) return false;
-        return Physics2D.OverlapCircle(wallCheck.position, groundCheckRadius, wallLayer);
+        if (playerCollider == null) return;
+
+        Vector2 start = new Vector2(rb.position.x, playerCollider.bounds.max.y + 0.02f);
+        RaycastHit2D hit = Physics2D.Raycast(start, Vector2.up, ceilingSnapMaxDistance, ceilingLayer);
+
+        if (hit.collider != null)
+        {
+            float gap = hit.distance;
+            float move = gap - ceilingSnapEpsilon;
+
+            if (move > 0.0001f)
+            {
+                rb.MovePosition(rb.position + Vector2.up * move);
+            }
+            else if (move < -0.02f)
+            {
+                rb.MovePosition(rb.position + Vector2.down * (-move));
+            }
+        }
     }
 
-    // -1 = wall on left, +1 = wall on right, 0 = none
-    private int GetWallSide()
+    private void OnDrawGizmosSelected()
     {
-        if (wallCheck == null) return 0;
-
-        Vector2 basePos = wallCheck.position;
-        bool right = Physics2D.OverlapCircle(basePos + Vector2.right * wallCheckSideOffset,
-                                             wallCheckProbeRadius, wallLayer);
-        bool left = Physics2D.OverlapCircle(basePos + Vector2.left * wallCheckSideOffset,
-                                             wallCheckProbeRadius, wallLayer);
-
-        if (right == left) return 0; // ไม่ชัดเจน
-        return right ? +1 : -1;
+        if (ceilingCheck != null)
+        {
+            Gizmos.color = Color.cyan;
+            Gizmos.DrawWireSphere(ceilingCheck.position, ceilingStickRadius);
+        }
     }
-
-    private void StopWallJumping()
-    {
-        isWallJumping = false;
-    }
-    // ----------------------------------
-
-    // ---------- Sync wallCheck with facing ----------
-    private void SyncWallCheckToFacing()
-    {
-        if (!mirrorWallCheckByFacing || wallCheck == null || spriteRenderer == null) return;
-
-        float dir = spriteRenderer.flipX ? -1f : 1f;
-        wallCheck.localPosition = new Vector3(Mathf.Abs(_wallCheckInitialLocalPos.x) * dir,
-                                              _wallCheckInitialLocalPos.y,
-                                              _wallCheckInitialLocalPos.z);
-
-        // หรือใช้ offset กำหนดเอง:
-        // wallCheck.localPosition = new Vector3(wallCheckLocalOffset.x * dir, wallCheckLocalOffset.y, wallCheck.localPosition.z);
-    }
-    // -------------------------------------------------
 }

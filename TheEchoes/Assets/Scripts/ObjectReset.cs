@@ -30,13 +30,13 @@ public class ObjectReset : MonoBehaviour
 
         if (rb2d)
         {
-            rb2d.velocity = Vector2.zero;
+            rb2d.linearVelocity = Vector2.zero;
             rb2d.angularVelocity = 0f;
         }
 
         if (rb3d)
         {
-            rb3d.velocity = Vector3.zero;
+            rb3d.linearVelocity = Vector3.zero;
             rb3d.angularVelocity = Vector3.zero;
         }
     }

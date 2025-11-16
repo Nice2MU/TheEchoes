@@ -2,10 +2,17 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using System;
+
+#if ENABLE_INPUT_SYSTEM
+using UnityEngine.InputSystem;
+#endif
 
 [DisallowMultipleComponent]
 public class PlayerHealth : MonoBehaviour
 {
+    public static event Action OnPlayerRespawned;
+
     [Header("Health (5 hits)")]
     [SerializeField] private int maxHits = 5;
     [SerializeField] private int currentHits = 5;
@@ -27,11 +34,23 @@ public class PlayerHealth : MonoBehaviour
     public float blinkInterval = 0.1f;
     [Range(0f, 1f)] public float blinkMinAlpha = 0.35f;
 
+    [Header("Water Damage Over Time")]
+    public LayerMask waterLayer;
+    public float waterProbeRadius = 0.22f;
+    public float waterDamageInterval = 0.5f;
+    public int waterDamagePerTick = 1;
+    public string[] lumerinKeys = new[] { "Lumerin" };
+    private float _nextWaterTickTime = 0f;
+
     [Header("Respawn / Checkpoint")]
     public static Vector3 lastCheckpointPosition;
 
     [Header("Objects To Reset On Respawn")]
     public GameObject[] objectsToReset;
+
+    [Header("Temporary Suicide Hotkey")]
+    public bool enableSuicideHotkey = true;
+    public KeyCode suicideKey = KeyCode.R;
 
     private Rigidbody2D rb2d;
     private ConsumeControl consumeControl;
@@ -53,6 +72,12 @@ public class PlayerHealth : MonoBehaviour
 
         currentHits = Mathf.Clamp(currentHits, 0, maxHits);
         RefreshUI();
+    }
+
+    private void Update()
+    {
+        HandleWaterDot();
+        HandleSuicideHotkey();
     }
 
     public int GetHits() => Mathf.Clamp(currentHits, 0, maxHits);
@@ -79,8 +104,9 @@ public class PlayerHealth : MonoBehaviour
             StopBlinkIfAny();
             Respawn();
             RestoreFullHealth();
-        }
 
+            OnPlayerRespawned?.Invoke();
+        }
         else
         {
             if (enableBlinkOnCooldown) StartBlinkUntilCooldownEnds();
@@ -103,7 +129,6 @@ public class PlayerHealth : MonoBehaviour
             bool isOn = i < currentHits;
 
             if (hideSpentDots) img.enabled = isOn;
-
             else
             {
                 img.enabled = true;
@@ -114,6 +139,12 @@ public class PlayerHealth : MonoBehaviour
 
     public void Respawn()
     {
+        var pc = GetComponent<PlayerControl>();
+        if (pc != null)
+        {
+            pc.ForceDetachFromVine(addJumpImpulse: false);
+        }
+
         transform.position = lastCheckpointPosition;
 
         if (objectsToReset != null)
@@ -149,6 +180,7 @@ public class PlayerHealth : MonoBehaviour
             StopBlinkIfAny();
             Respawn();
             RestoreFullHealth();
+            OnPlayerRespawned?.Invoke();
             return;
         }
 
@@ -169,6 +201,7 @@ public class PlayerHealth : MonoBehaviour
             StopBlinkIfAny();
             Respawn();
             RestoreFullHealth();
+            OnPlayerRespawned?.Invoke();
             return;
         }
 
@@ -187,7 +220,7 @@ public class PlayerHealth : MonoBehaviour
         if (!rb2d) return;
         Vector2 dir = ((Vector2)transform.position - (Vector2)sourcePosition).normalized;
         dir.y = Mathf.Clamp01(dir.y + knockbackUpBias);
-        rb2d.velocity = Vector2.zero;
+        rb2d.linearVelocity = Vector2.zero;
         rb2d.AddForce(dir * knockbackForce, ForceMode2D.Impulse);
     }
 
@@ -232,5 +265,69 @@ public class PlayerHealth : MonoBehaviour
         var c = selfSprite.color;
         c.a = a;
         selfSprite.color = c;
+    }
+
+    private void HandleWaterDot()
+    {
+        if (IsInLumerinForm()) return;
+
+        bool inWater = Physics2D.OverlapCircle(transform.position, waterProbeRadius, waterLayer);
+        if (!inWater) return;
+
+        if (Time.time >= _nextWaterTickTime)
+        {
+            _nextWaterTickTime = Time.time + Mathf.Max(0.05f, waterDamageInterval);
+            TakeHit(Mathf.Max(1, waterDamagePerTick));
+        }
+    }
+
+    private bool IsInLumerinForm()
+    {
+        if (consumeControl == null) consumeControl = GetComponent<ConsumeControl>();
+        if (consumeControl == null) return false;
+
+        var snap = consumeControl.BuildSnapshot();
+        if (!snap.isMorphing) return false;
+
+        string tag = snap.morphTag ?? "";
+        string ctrl = snap.controllerName ?? "";
+
+        for (int i = 0; i < (lumerinKeys?.Length ?? 0); i++)
+        {
+            var key = lumerinKeys[i];
+            if (string.IsNullOrEmpty(key)) continue;
+
+            if (!string.IsNullOrEmpty(tag) && tag.IndexOf(key, StringComparison.OrdinalIgnoreCase) >= 0)
+                return true;
+
+            if (!string.IsNullOrEmpty(ctrl) && ctrl.IndexOf(key, StringComparison.OrdinalIgnoreCase) >= 0)
+                return true;
+        }
+
+        return false;
+    }
+
+    private void HandleSuicideHotkey()
+    {
+        if (!enableSuicideHotkey) return;
+
+        bool pressed = false;
+
+#if ENABLE_INPUT_SYSTEM
+        if (Keyboard.current != null && Keyboard.current.rKey.wasPressedThisFrame)
+            pressed = true;
+#endif
+
+#if ENABLE_LEGACY_INPUT_MANAGER
+        if (Input.GetKeyDown(suicideKey))
+            pressed = true;
+#endif
+
+        if (!pressed) return;
+
+        StopBlinkIfAny();
+        Respawn();
+        RestoreFullHealth();
+        OnPlayerRespawned?.Invoke();
     }
 }

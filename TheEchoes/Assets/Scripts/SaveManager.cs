@@ -44,7 +44,11 @@ public class SaveManager : MonoBehaviour
 
     private void OnEnable()
     {
-        WireSlot(slot1); WireSlot(slot2); WireSlot(slot3); WireSlot(slot4);
+        WireSlot(slot1);
+        WireSlot(slot2);
+        WireSlot(slot3);
+        WireSlot(slot4);
+
         RefreshAll();
         UpdateDeleteHint();
     }
@@ -58,7 +62,10 @@ public class SaveManager : MonoBehaviour
 
     public void RefreshAll()
     {
-        Refresh(slot1); Refresh(slot2); Refresh(slot3); Refresh(slot4);
+        Refresh(slot1);
+        Refresh(slot2);
+        Refresh(slot3);
+        Refresh(slot4);
     }
 
     private void Refresh(SlotWidgets w)
@@ -72,7 +79,7 @@ public class SaveManager : MonoBehaviour
             if (w.previewImage) w.previewImage.texture = null;
             return;
         }
-        
+
         var d = SaveDataSystem.Load(w.slotIndex);
         if (d == null)
         {
@@ -114,10 +121,15 @@ public class SaveManager : MonoBehaviour
                     tex.LoadImage(bytes);
                     w.previewImage.texture = tex;
                 }
-                catch { w.previewImage.texture = null; }
+                catch
+                {
+                    w.previewImage.texture = null;
+                }
             }
-
-            else w.previewImage.texture = null;
+            else
+            {
+                w.previewImage.texture = null;
+            }
         }
     }
 
@@ -126,7 +138,8 @@ public class SaveManager : MonoBehaviour
         if (deleteMode)
         {
             SaveDataSystem.Delete(slot);
-            if (GlobalGame.CurrentSlot == slot) GlobalGame.CurrentSlot = 1;
+            if (GlobalGame.CurrentSlot == slot)
+                GlobalGame.CurrentSlot = 1;
             ToggleDeleteMode();
             RefreshAll();
             return;
@@ -160,7 +173,8 @@ public class SaveManager : MonoBehaviour
         }
 
         var gsm = FindObjectOfType<GameSaveManager>();
-        if (gsm != null) gsm.ApplyFromCurrentSlot(true);
+        if (gsm != null)
+            gsm.ApplyFromCurrentSlot(true);
 
         if (mainMenuUI) mainMenuUI.SetActive(false);
         if (gameUI) gameUI.SetActive(true);
@@ -175,7 +189,8 @@ public class SaveManager : MonoBehaviour
 
     private void UpdateDeleteHint()
     {
-        if (deleteModeHint) deleteModeHint.text = deleteMode ? "Delete Mode: Tap a slot to delete" : "";
+        if (deleteModeHint)
+            deleteModeHint.text = deleteMode ? "Delete Mode: Tap a slot to delete" : "";
         if (deleteModeButton)
         {
             var txt = deleteModeButton.GetComponentInChildren<TextMeshProUGUI>();

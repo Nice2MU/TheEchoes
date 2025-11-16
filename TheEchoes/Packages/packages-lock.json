@@ -40,7 +40,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.2d.psdimporter": {
-      "version": "11.0.1",
+      "version": "11.0.2",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -88,7 +88,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.burst": {
-      "version": "1.8.24",
+      "version": "1.8.25",
       "depth": 2,
       "source": "registry",
       "dependencies": {
@@ -98,12 +98,11 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.cinemachine": {
-      "version": "3.1.4",
+      "version": "3.1.2",
       "depth": 0,
       "source": "registry",
       "dependencies": {
-        "com.unity.splines": "2.0.0",
-        "com.unity.modules.imgui": "1.0.0"
+        "com.unity.splines": "2.0.0"
       },
       "url": "https://packages.unity.com"
     },
@@ -128,7 +127,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.connect.share": {
-      "version": "4.2.3",
+      "version": "4.2.4",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -138,7 +137,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.device-simulator.devices": {
-      "version": "1.0.0",
+      "version": "1.0.1",
       "depth": 0,
       "source": "registry",
       "dependencies": {},
@@ -167,11 +166,11 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.ide.visualstudio": {
-      "version": "2.0.23",
+      "version": "2.0.25",
       "depth": 0,
       "source": "registry",
       "dependencies": {
-        "com.unity.test-framework": "1.1.9"
+        "com.unity.test-framework": "1.1.31"
       },
       "url": "https://packages.unity.com"
     },
@@ -316,7 +315,7 @@
       }
     },
     "com.unity.test-framework.performance": {
-      "version": "3.1.0",
+      "version": "3.2.0",
       "depth": 2,
       "source": "registry",
       "dependencies": {
@@ -356,7 +355,7 @@
       }
     },
     "com.unity.visualscripting": {
-      "version": "1.9.8",
+      "version": "1.9.9",
       "depth": 0,
       "source": "registry",
       "dependencies": {

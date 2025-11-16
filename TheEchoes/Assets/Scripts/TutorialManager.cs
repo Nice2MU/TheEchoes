@@ -221,7 +221,7 @@ public class TutorialManager : MonoBehaviour
         if (playerRb != null)
         {
             originalConstraints = playerRb.constraints;
-            playerRb.velocity = Vector2.zero;
+            playerRb.linearVelocity = Vector2.zero;
             playerRb.angularVelocity = 0f;
             playerRb.constraints = RigidbodyConstraints2D.FreezeAll;
         }
@@ -262,7 +262,7 @@ public class TutorialManager : MonoBehaviour
             if (enable)
             {
                 savedConstraintsForFacing = playerRb.constraints;
-                playerRb.velocity = Vector2.zero;
+                playerRb.linearVelocity = Vector2.zero;
                 playerRb.angularVelocity = 0f;
                 playerRb.constraints = RigidbodyConstraints2D.FreezePositionX | RigidbodyConstraints2D.FreezeRotation;
             }
@@ -310,7 +310,7 @@ public class TutorialManager : MonoBehaviour
     private void ZeroOutHorizontalVelocity()
     {
         if (playerRb == null) return;
-        if (!Mathf.Approximately(playerRb.velocity.x, 0f))
-            playerRb.velocity = new Vector2(0f, playerRb.velocity.y);
+        if (!Mathf.Approximately(playerRb.linearVelocity.x, 0f))
+            playerRb.linearVelocity = new Vector2(0f, playerRb.linearVelocity.y);
     }
 }

@@ -20,6 +20,13 @@ public class ConsumeControl : MonoBehaviour
     public float morphDuration = 60f;
     public float consumeDelay = 1f;
 
+    public float consumeCooldown = 1.5f;
+
+    [Header("Morph Time Boost")]
+    public float morphTimeCapMultiplier = 1.5f;
+
+    private float nextConsumeTime = 0f;
+
     public LayerMask targetLayer;
     public LayerMask waterLayer;
 
@@ -190,28 +197,29 @@ public class ConsumeControl : MonoBehaviour
     void Update()
     {
         Direction();
-
         isInWater = IsInWater();
+
+        if (Time.time < nextConsumeTime)
+            return;
 
         if (consumeAction != null && consumeAction.action.triggered)
         {
+            nextConsumeTime = Time.time + consumeCooldown;
+
             if (isMorphing && hasStoredMorph && !isInWater)
             {
                 RevertToOriginalForm();
             }
-
             else if (isMorphing && !isInWater)
             {
                 RevertToOriginalForm();
             }
-
             else if (!isMorphing && !isConsuming && !isInWater)
             {
                 if (IsTargetInFront())
                 {
                     TryConsumeTarget();
                 }
-
                 else if (hasStoredMorph && !isMorphing)
                 {
                     MorphBackToLastForm();
@@ -422,7 +430,6 @@ public class ConsumeControl : MonoBehaviour
         }
 
         UpdateMorphIcon();
-
     }
 
     private void UpdateMorphIcon()
@@ -433,7 +440,6 @@ public class ConsumeControl : MonoBehaviour
         {
             morphIcon.sprite = lastMorphData.icon;
         }
-
         else
         {
             morphIcon.sprite = defaultMorphIcon;
@@ -509,6 +515,52 @@ public class ConsumeControl : MonoBehaviour
         }
 
         consumedObjects.Clear();
+    }
+
+    public bool AddMorphTime(float seconds, bool allowOvercap = false, bool playSfx = true)
+    {
+        if (seconds <= 0f) return false;
+
+        float cap = allowOvercap ? float.PositiveInfinity : morphDuration * Mathf.Max(1f, morphTimeCapMultiplier);
+
+        if (isMorphing)
+        {
+            float current = pawerBar != null ? pawerBar.value : 0f;
+            float target = Mathf.Min(current + seconds, cap);
+            if (Mathf.Approximately(target, current)) return false;
+
+            if (pawerBar != null) pawerBar.value = target;
+
+            if (morphTimerCoroutine != null)
+            {
+                StopCoroutine(morphTimerCoroutine);
+                morphTimerCoroutine = null;
+            }
+            morphTimerCoroutine = StartCoroutine(MorphCountdown(target));
+
+            if (playSfx) SoundManager.instance?.PlaySFX("PickupMorphTime");
+            return true;
+        }
+
+        if (!isMorphing && hasStoredMorph)
+        {
+            float current = lastMorphTimeLeft;
+            float target = Mathf.Min(current + seconds, cap);
+            if (Mathf.Approximately(target, current)) return false;
+
+            lastMorphTimeLeft = target;
+            if (playSfx) SoundManager.instance?.PlaySFX("PickupMorphTime");
+            return true;
+        }
+
+        return false;
+    }
+
+    public float GetMorphTimeRemaining()
+    {
+        if (isMorphing) return pawerBar != null ? pawerBar.value : 0f;
+        if (hasStoredMorph) return lastMorphTimeLeft;
+        return 0f;
     }
 
     private void OnDrawGizmosSelected()

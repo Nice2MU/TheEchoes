@@ -4,37 +4,6 @@
 TagManager:
   serializedVersion: 3
   tags:
-  - T1
-  - T2
-  - T3
-  - T4
-  - T5
-  - T6
-  - T7
-  - T8
-  - T9
-  - T10
-  - T11
-  - T12
-  - T13
-  - T14
-  - T15
-  - T16
-  - T17
-  - T18
-  - T19
-  - T20
-  - T21
-  - T22
-  - T23
-  - T24
-  - T25
-  - T26
-  - T27
-  - T28
-  - T29
-  - T30
-  - THide
   - Grab
   - Slide
   - Wall
@@ -43,6 +12,8 @@ TagManager:
   - HideZone
   - Kill
   - Damage
+  - RollTrigger
+  - PauseBlocked
   layers:
   - Default
   - TransparentFX
@@ -79,6 +50,21 @@ TagManager:
   m_SortingLayers:
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: Arm
+    uniqueID: 3010667117
+    locked: 0
+  - name: Head
+    uniqueID: 286136357
+    locked: 0
+  - name: Body
+    uniqueID: 2235202409
+    locked: 0
+  - name: Player
+    uniqueID: 162079847
+    locked: 0
+  - name: Foreground
+    uniqueID: 610817965
     locked: 0
   - name: NoLight
     uniqueID: 4094177115
