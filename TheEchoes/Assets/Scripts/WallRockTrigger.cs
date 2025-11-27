@@ -49,6 +49,11 @@ public class WallRockTrigger : MonoBehaviour
 
     void DoFall()
     {
+        if (SoundManager.instance != null)
+        {
+            SoundManager.instance.PlaySFX("WallDestroy");
+        }
+
         foreach (var r in rocks)
         {
             if (r != null)

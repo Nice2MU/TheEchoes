@@ -1,28 +1,69 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using UnityEngine;
 using TMPro;
 
 public class TriggerDialogue : MonoBehaviour
 {
+    [Header("UI")]
     public GameObject dialoguePanel;
     public TMP_Text dialogueText;
 
+    [Header("Lines")]
     [TextArea(2, 5)]
     public string[] dialogues;
 
+    [Header("Typing")]
     public float typeSpeed = 0.07f;
     public float waitBetweenLines = 1f;
+
+    [Header("Play Once Per Save Slot")]
     public bool playOnce = true;
 
     private int currentIndex = 0;
     private Coroutine typingRoutine;
     private Collider2D col;
 
-    private string StableId => DialogueIdUtil.GetStableId(gameObject);
+    [SerializeField, HideInInspector]
+    private string uniqueId;
+
+    private string StableId
+    {
+        get
+        {
+            if (string.IsNullOrEmpty(uniqueId))
+                uniqueId = Guid.NewGuid().ToString();
+            return uniqueId;
+        }
+    }
+
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        if (!Application.isPlaying)
+        {
+            if (string.IsNullOrEmpty(uniqueId))
+                uniqueId = Guid.NewGuid().ToString();
+
+            var all = UnityEngine.Object.FindObjectsOfType<TriggerDialogue>(true);
+            foreach (var t in all)
+            {
+                if (t == this) continue;
+                if (t.uniqueId == uniqueId)
+                {
+                    uniqueId = Guid.NewGuid().ToString();
+                    break;
+                }
+            }
+        }
+    }
+#endif
 
     private void Awake()
     {
         col = GetComponent<Collider2D>();
+        if (string.IsNullOrEmpty(uniqueId))
+            uniqueId = Guid.NewGuid().ToString();
     }
 
     private void OnEnable()
@@ -43,8 +84,17 @@ public class TriggerDialogue : MonoBehaviour
 
     private void RecheckAgainstRuntime()
     {
-        bool completedInThisSlot = DialogueRuntime.Instance &&
-                                   DialogueRuntime.Instance.IsNpcCompleted(StableId);
+        if (!playOnce)
+        {
+            if (col) col.enabled = true;
+            if (dialoguePanel) dialoguePanel.SetActive(false);
+            currentIndex = 0;
+            return;
+        }
+
+        bool completedInThisSlot =
+            DialogueRuntime.Instance &&
+            DialogueRuntime.Instance.IsNpcCompleted(StableId);
 
         if (completedInThisSlot)
         {
@@ -54,6 +104,7 @@ public class TriggerDialogue : MonoBehaviour
         else
         {
             if (col) col.enabled = true;
+            if (dialoguePanel) dialoguePanel.SetActive(false);
             currentIndex = 0;
         }
     }
@@ -64,8 +115,12 @@ public class TriggerDialogue : MonoBehaviour
         if (dialogues == null || dialogues.Length == 0) return;
         if (dialoguePanel == null || dialogueText == null) return;
 
-        if (DialogueRuntime.Instance && DialogueRuntime.Instance.IsNpcCompleted(StableId))
+        if (playOnce &&
+            DialogueRuntime.Instance &&
+            DialogueRuntime.Instance.IsNpcCompleted(StableId))
+        {
             return;
+        }
 
         dialoguePanel.SetActive(true);
         currentIndex = 0;
@@ -112,11 +167,14 @@ public class TriggerDialogue : MonoBehaviour
         }
         else
         {
-            DialogueRuntime.Instance?.MarkNpcCompleted(StableId);
+            if (playOnce)
+            {
+                DialogueRuntime.Instance?.MarkNpcCompleted(StableId);
+
+                if (col) col.enabled = false;
+            }
 
             if (dialoguePanel) dialoguePanel.SetActive(false);
-
-            if (col) col.enabled = false;
         }
     }
 

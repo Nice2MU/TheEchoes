@@ -11,12 +11,9 @@ public class SoundManager : MonoBehaviour
     public AudioSource uiSource;
 
     [Header("UI Clips")]
-    public AudioClip start;
     public AudioClip point;
     public AudioClip click;
     public AudioClip typing;
-    public AudioClip save;
-    public AudioClip delete;
 
     [Header("Action Clips")]
     public AudioClip walk;
@@ -28,25 +25,16 @@ public class SoundManager : MonoBehaviour
     public AudioClip consume;
     public AudioClip transforms;
     public AudioClip roll;
-    public AudioClip shock;
     public AudioClip shake;
     public AudioClip sleep;
     public AudioClip drown;
 
     [Header("Environment Clips")]
-    public AudioClip grass;
-    public AudioClip wind;
-    public AudioClip cave;
-    public AudioClip water;
-    public AudioClip drippingwater;
-    public AudioClip firefly;
     public AudioClip vine;
     public AudioClip walldestroy;
     public AudioClip earthquake;
 
     [Header("Enemies Clips")]
-    public AudioClip anon;
-    public AudioClip demon;
     public AudioClip walkramble;
     public AudioClip jumpramble;
     public AudioClip fallramble;
@@ -57,7 +45,6 @@ public class SoundManager : MonoBehaviour
 
     [Header("Music Clips")]
     public AudioClip music1;
-    public AudioClip music2;
 
     [Header("Boss Clips")]
     public AudioClip bossArmSpawn;
@@ -89,12 +76,9 @@ public class SoundManager : MonoBehaviour
         switch (sfxName)
         {
             //-----------------------------UI-----------------------------
-            case "Start": uiSource.PlayOneShot(start); break;
             case "Point": uiSource.PlayOneShot(point); break;
             case "Click": uiSource.PlayOneShot(click); break;
             case "Typing": uiSource.PlayOneShot(typing); break;
-            case "Save": uiSource.PlayOneShot(save); break;
-            case "Delete": uiSource.PlayOneShot(delete); break;
 
             //---------------------------Action---------------------------
             case "Walk": effectSource.PlayOneShot(walk); break;
@@ -106,25 +90,16 @@ public class SoundManager : MonoBehaviour
             case "Consume": effectSource.PlayOneShot(consume); break;
             case "Transform": effectSource.PlayOneShot(transforms); break;
             case "Roll": effectSource.PlayOneShot(roll); break;
-            case "Shock": effectSource.PlayOneShot(shock); break;
             case "Shake": effectSource.PlayOneShot(shake); break;
             case "Sleep": effectSource.PlayOneShot(sleep); break;
             case "Drown": effectSource.PlayOneShot(drown); break;
 
             //------------------------Environment-------------------------
-            case "Grass": effectSource.PlayOneShot(grass); break;
-            case "Wind": effectSource.PlayOneShot(wind); break;
-            case "Cave": effectSource.PlayOneShot(cave); break;
-            case "Water": effectSource.PlayOneShot(water); break;
-            case "DrippingWater": effectSource.PlayOneShot(drippingwater); break;
-            case "Firefly": effectSource.PlayOneShot(firefly); break;
             case "Vine": distanceSource.PlayOneShot(vine); break;
             case "WallDestroy": effectSource.PlayOneShot(walldestroy); break;
             case "Earthquake": effectSource.PlayOneShot(earthquake); break;
 
             //--------------------------Enemies---------------------------
-            case "Anon": effectSource.PlayOneShot(anon); break;
-            case "Demon": effectSource.PlayOneShot(demon); break;
             case "WalkRamble": effectSource.PlayOneShot(walkramble); break;
             case "JumpRamble": effectSource.PlayOneShot(jumpramble); break;
             case "FallRamble": effectSource.PlayOneShot(fallramble); break;
@@ -135,7 +110,6 @@ public class SoundManager : MonoBehaviour
 
             //---------------------------Music----------------------------
             case "Music1": musicSource.PlayOneShot(music1); break;
-            case "Music2": musicSource.PlayOneShot(music2); break;
 
             //---------------------------Boss-----------------------------
             case "BossArmSpawn":
